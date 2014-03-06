@@ -13,7 +13,9 @@ define([
 
     classe.prototype.get = function (key) {
         var defer = Q.defer();
-        defer.resolve(this[key]);
+        var val = this[key];
+        var result = val ? val : null;
+        defer.resolve(result);
         return defer.promise;
     }
 
