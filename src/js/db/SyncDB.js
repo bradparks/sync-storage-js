@@ -15,20 +15,26 @@ function (PouchDB, $, StringUtils, _, Q, Storage) {
         this.storage = new Storage(url);
     }
 
+    var generateHash = function() {
+        var dic = "0987654321azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN";
+        var hash = "";
+        for (var i=0;i<30;i++) {
+            hash += dic.charAt(_.random(0, dic.length-1));
+        }
+    }
+
     classe.prototype.save = function(object) {
         var resultObject = $.extend({}, object);
         if (!resultObject._id) {
             resultObject._id = new Date().getTime() + "";
         }
-        if (!resultObject._rev) {
-
-            var dic = "0987654321azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN";
-            var hash = "";
-            for (var i=0;i<30;i++) {
-                hash += dic.charAt(_.random(0, dic.length-1));
-            }
-            resultObject._rev = "1-"+hash;
+        var version = 1;
+        if (resultObject._rev) {
+            var rev = resultObject._rev;
+            var version = rev.substring(0, rev.indexOf('-'));
+            version++;
         }
+        resultObject._rev = version+"-"+generateHash();
         this.storage.save(resultObject);
         return resultObject;
     }
