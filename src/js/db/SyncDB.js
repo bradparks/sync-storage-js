@@ -68,5 +68,12 @@ define([
             return this.storage.get(key);
         };
 
+        classe.prototype.query = function(query) {
+            if (!query.mapFunction) {
+                throw "mapFunction must be defined in the query";
+            }
+            return this.storage.query(query);
+        }
+
         return classe;
     });

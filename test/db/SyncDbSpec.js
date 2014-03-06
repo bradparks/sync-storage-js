@@ -98,5 +98,28 @@ define([
                 });
                 waitsFor(asyncTest);
             });
+
+            it('query docs by value', function () {
+                db.save(object).then(function(result) {
+                    object = result;
+                }).then(function() {
+                    return db.query({
+                        mapFunction:function(emit) {
+                            return function(doc) {
+                                emit(doc._id, doc);
+                            }
+                        },
+                        startkey:undefined,
+                        endkey:undefined
+                    });
+                }).then(function(result) {
+                    expect(result).toEqual({
+                        total_rows:1,
+                        rows: [object]
+                    });
+                    testOk = true;
+                })
+                waitsFor(asyncTest);
+            });
         })
     });
