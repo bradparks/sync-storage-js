@@ -24,7 +24,7 @@ define([
                 }).then(function (object) {
                     expect(object).toBe(objectOrigin);
                     testOk = true;
-                })
+                });
                 waitsFor(asyncTest);
             });
         })
