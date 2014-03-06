@@ -61,7 +61,7 @@ define([
                 throw "get method : _id must be filled";
             }
             var key = query._id;
-            if (!query._rev) {
+            if (query._rev) {
                 key += "/" + query._rev;
             }
             console.log("looking for "+key);

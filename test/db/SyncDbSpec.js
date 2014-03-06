@@ -1,8 +1,9 @@
 define([
     "db/SyncDB",
-    "jquery"
+    "jquery",
+    "q"
 ],
-    function (SyncDB, $) {
+    function (SyncDB, $, Q) {
         describe('SyncDB', function () {
             var db;
             var object;
@@ -46,8 +47,8 @@ define([
                         expect(result).toEqual(object);
                     })
                     .then(function() {return db.get({_id: object._id})}).then(function(result) {expect(result).toEqual(object)})
-                      .then(function() {return db.get({_id: object._id, _rev: object2._rev})}).then(function(result) {expect(result).toEqual(object)})
-                      .then(function() {
+                    .then(function() {return db.get({_id: object._id, _rev: object2._rev})}).then(function(result) {expect(result).toEqual(object)})
+                    .then(function() {
                         console.log("OK !");
                         testOk = true;
                     }).fail(log);
@@ -60,13 +61,21 @@ define([
                         var object2 = $.extend({}, object);
                         object2.value = "test2";
                         db.save(object2).then(function (object2) {
+                            console.log(object);
+                            console.log(object2);
                             expect(object).not.toEqual(object2);
-
-                            expectPromiseEqual(db.get(object2), object2);
-                            expectPromiseEqual(db.get({_id: object._id}), object2);
-                            expectPromiseEqual(db.get({_id: object._id, _rev: object._rev}), object);
-                            expectPromiseEqual(db.get({_id: object._id, _rev: object2._rev}), object2);
-                            testOk = true;
+                            Q.all([
+                                db.get(object2),
+                                db.get({_id: object._id}),
+                                db.get({_id: object._id, _rev: object._rev}),
+                                db.get({_id: object._id, _rev: object2._rev})
+                            ]).then(function(array) {
+                                expect(array[0]).toEqual(object2);
+                                expect(array[1]).toEqual(object2);
+                                expect(array[2]).toEqual(object);
+                                expect(array[3]).toEqual(object2);
+                                testOk = true;
+                            });
                         });
                     }).fail(log);
                 waitsFor(asyncTest);
