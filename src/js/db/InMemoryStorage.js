@@ -19,5 +19,11 @@ define([
         return defer.promise;
     }
 
+    classe.prototype.getMap = function() {
+        var defer = Q.defer();
+        defer.resolve(this);
+        return defer.promise;
+    }
+
     return classe;
 });

@@ -1,13 +1,19 @@
 define([
-], function() {
+    "q",
+    "utils/StringUtils"
+], function(Q, StringUtils) {
     var classe = function(name, storage) {
         this.name = name;
         this.storage = storage;
         this.indexStorage = null;
     }
 
+    var getPrefix = function(self) {
+        return self.name + "/";
+    }
+
     var getNewKey = function(self, key) {
-        return self.name + "/" + key;
+        return getPrefix(self) + key;
     }
 
     classe.prototype.save = function(key, object) {
@@ -20,30 +26,38 @@ define([
 
     classe.prototype.query = function(query) {
         // TODO create index to fasten search
+        var self = this;
         var defer = Q.defer();
         var rows = {};
         var total = 0;
+        var totalKeys = 0;
         var emit = function(key, value) {
             var array = rows[key];
             if (!array) {
                 array = [];
                 rows[key] = array;
+                totalKeys++;
             }
             array.push(value);
             total++;
         }
-        console.log(JSON.stringify(this, null, 2));
-        for (var key in this) {
-            var doc = this[key];
-            if (typeof doc != 'function') {
-                query.mapFunction(emit)(doc);
+        return this.storage.getMap().then(function(map) {
+            for (var key in map) {
+                if (!StringUtils.startsWith(key, getPrefix(self))) {
+                    continue;
+                }
+                var doc = map[key];
+                if (typeof doc != 'function') {
+                    query.mapFunction(emit)(doc);
+                }
             }
-        }
-        defer.resolve({
-            total_rows:total,
-            rows:rows
+            defer.resolve({
+                total_keys:totalKeys,
+                total_rows:total,
+                rows:rows
+            });
+            return defer.promise;
         });
-        return defer.promise;
     }
 
     return classe;

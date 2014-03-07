@@ -4,15 +4,18 @@ define([
     "utils/StringUtils",
     "underscore",
     "q",
+    "db/StoragePlus",
     "db/InMemoryStorage"
 ],
-    function (PouchDB, $, StringUtils, _, Q, Storage) {
+    function (PouchDB, $, StringUtils, _, Q, StoragePlus, Storage) {
         console.log("loading SyncDB");
 
         var classe = function (url) {
             this.name = url;
             this.isLocal = !StringUtils.startsWith(url, "http");
-            this.storage = new Storage(url);
+            var simpleStorage = new Storage();
+            this.storage = new StoragePlus(url, simpleStorage);
+            this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
         };
 
         var generateHash = function () {
@@ -45,7 +48,7 @@ define([
             }
             resultObject._rev = version + "-" + generateHash();
             var combinedKey = resultObject._id + "/" + resultObject._rev;
-            self.storage.save(combinedKey, resultObject);
+            self.storageVersion.save(combinedKey, resultObject);
             // TODO put lock on write
             return self.storage.get(resultObject._id).then(function (lastObject) {
                 console.log("last=" + JSON.stringify(lastObject));
@@ -60,12 +63,14 @@ define([
             if (!query._id) {
                 throw "get method : _id must be filled";
             }
+            var lookingStorage = this.storage;
             var key = query._id;
             if (query._rev) {
                 key += "/" + query._rev;
+                lookingStorage = this.storageVersion;
             }
             console.log("looking for "+key);
-            return this.storage.get(key);
+            return lookingStorage.get(key);
         };
 
         classe.prototype.query = function(query) {

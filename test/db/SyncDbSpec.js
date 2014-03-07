@@ -113,10 +113,14 @@ define([
                         endkey:undefined
                     });
                 }).then(function(result) {
-                    expect(result).toEqual({
-                        total_rows:1,
-                        rows: [object]
-                    });
+                    var map = {};
+                    map[object._id] = [object];
+                    var expected = {
+                       total_keys:1,
+                       total_rows:1,
+                       rows: map
+                    };
+                    expect(result).toEqual(expected);
                     testOk = true;
                 })
                 waitsFor(asyncTest);
