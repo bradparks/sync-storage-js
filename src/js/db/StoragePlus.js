@@ -24,6 +24,10 @@ define([
         return this.storage.get(getNewKey(this, key));
     };
 
+    classe.prototype.del = function(key) {
+        return this.storage.del(getNewKey(this, key));
+    }
+
     classe.prototype.query = function(query) {
         // TODO create index to fasten search
         var self = this;

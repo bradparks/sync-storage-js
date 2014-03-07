@@ -19,6 +19,14 @@ define([
         return defer.promise;
     }
 
+    classe.prototype.del = function (key) {
+        var defer = Q.defer();
+        var exists = this[key] ? true : false;
+        delete this[key];
+        defer.resolve(exists);
+        return defer.promise;
+    }
+
     classe.prototype.getMap = function() {
         var defer = Q.defer();
         defer.resolve(this);

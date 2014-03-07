@@ -75,6 +75,19 @@ define([
             return lookingStorage.get(key);
         };
 
+        classe.prototype.del = function(query) {
+            if (!query._id) {
+                throw "query method : _id must be filled";
+            }
+            var lookingStorage = this.storage;
+            var key = query._id;
+            if (query._rev) {
+                key += "/" + query._rev;
+                lookingStorage = this.storageVersion;
+            }
+            return lookingStorage.del(key);
+        }
+
         classe.prototype.query = function(query) {
             if (!query.mapFunction) {
                 throw "mapFunction must be defined in the query";
