@@ -12,8 +12,7 @@ define([
                 return testOk;
             }
             var log = function (object) {
-                console.log("error");
-                console.log(object);
+                console.error(object);
             }
 
             beforeEach(function () {
@@ -74,6 +73,19 @@ define([
                                 testOk = true;
                             });
                         });
+                    }).fail(log);
+                waitsFor(asyncTest);
+            });
+
+            it('deletes an object', function () {
+                db.save(object)
+                    .then(function (object) {
+                        db.del(object).then(function() {
+                            db.get(object).then(function(result) {
+                                expect(result).toBe(null);
+                                testOk = true;
+                            });
+                        }).fail(log);
                     }).fail(log);
                 waitsFor(asyncTest);
             });
