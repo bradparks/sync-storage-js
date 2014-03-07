@@ -10,10 +10,12 @@ define([
     function (PouchDB, $, StringUtils, _, Q, StoragePlus, Storage) {
         console.log("loading SyncDB");
 
-        var classe = function (url) {
+        var classe = function (url, simpleStorage) {
             this.name = url;
             this.isLocal = !StringUtils.startsWith(url, "http");
-            var simpleStorage = new Storage();
+            if (!simpleStorage) {
+                simpleStorage = new Storage();
+            }
             this.storage = new StoragePlus(url, simpleStorage);
             this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
         };
