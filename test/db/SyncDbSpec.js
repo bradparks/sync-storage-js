@@ -268,6 +268,7 @@ define([
                 }).then(function(result) {
                     expect(StringUtils.startsWith(result[0]._rev, "2-")).toBe(true);
                     expect(result[0]).toEqual(result[1]);
+                    testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);
             });

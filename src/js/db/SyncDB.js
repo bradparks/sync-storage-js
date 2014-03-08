@@ -55,7 +55,7 @@ define([
                 var shouldStore = !lastObject;
                 if (!shouldStore) {
                     var lastRev = parseRev(lastObject._rev);
-                    shouldStore = lastRev.version < version;
+                    shouldStore = lastRev.version < version || lastRev.version === version && lastRev.hash > parsedRev.hash;
                 }
                 if (shouldStore) {
                     console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
