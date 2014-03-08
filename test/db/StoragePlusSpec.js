@@ -17,7 +17,7 @@ define([
                 testOk = false;
             });
 
-            it('stores an object and retrieve an object', function () {
+            it('stores an object and retrieve it', function () {
                 var key = "clef";
                 var objectOrigin = object;
                 storage.save(key, objectOrigin).then(function () {
