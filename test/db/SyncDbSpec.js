@@ -2,14 +2,29 @@ define([
     "db/SyncDB",
     "jquery",
     "q",
-    "underscore"
+    "underscore",
+    "utils/StringUtils"
 ],
-    function (SyncDB, $, Q, _) {
+    function (SyncDB, $, Q, _, StringUtils) {
         describe('SyncDB', function () {
             var db;
             var remoteDb;
             var object;
             var testOk;
+            var create = function(db, number) {
+                var result = [];
+                for (var i=0;i<number;i++) {
+                    result.push({
+                        value:"test"+i
+                    });
+                }
+                return _.map(result, function(object) {
+                    return db.save(object);
+                });
+            }
+            var request = function(object) {
+                return {_id:object._id};
+            }
             var asyncTest = function () {
                 return testOk;
             }
@@ -80,6 +95,22 @@ define([
                                 testOk = true;
                             });
                         });
+                    }).fail(log);
+                waitsFor(asyncTest);
+            });
+
+            it('modifying an object coming from the db should not modify the db', function () {
+                db.save(object)
+                    .then(function (result) {
+                        object = result;
+                        object.value = "plop";
+                        return db.get(request(object));
+                    }).then(function(result) {
+                        stringify(result);
+                        stringify(object);
+                        expect(object).not.toEqual(result);
+                        expect(object.value).not.toEqual(result.value);
+                        testOk = true;
                     }).fail(log);
                 waitsFor(asyncTest);
             });
@@ -171,7 +202,7 @@ define([
                     expect(syncResult.from.ok).toBe(true);
                     expect(syncResult.to.size).toBe(1);
                     expect(syncResult.from.size).toBe(0);
-                    return remoteDb.get(object);
+                    return remoteDb.get(request(object));
                 }).then(function(result) {
                     expect(result).toEqual(object);
                     testOk = true;
@@ -180,18 +211,6 @@ define([
             });
 
             it('sync with other syncDb (both ways, several objects)', function() {
-                var create = function(db, number) {
-                    var result = [];
-                    for (var i=0;i<number;i++) {
-                        result.push({
-                            value:"test"+i
-                        });
-                    }
-                    return _.map(result, function(object) {
-                        return db.save(object);
-                    });
-                }
-
                 // save 4 objects
                 Q.all(create(db, 4)).then(function(result) {
                     // change the value of the 1st object
@@ -218,6 +237,37 @@ define([
                 }).then(function(result) {
                     expect(result).toEqual(object);
                     testOk = true;
+                }).fail(log);
+                waitsFor(asyncTest);
+            });
+
+            it('sync with other syncDb (conflicts)', function() {
+                console.log("plop");
+                 // save 1 object
+                Q.all(create(db, 1)).then(function(result) {
+                    object = result[0];
+                    return db.syncWith(remoteDb);
+                }).then(function() {
+                    return db.get(request(object));
+                }).then(function(object) {
+                    object.value = "local value";
+                    return db.save(object);
+                }).then(function(result) {
+                    return remoteDb.get(request(object));
+                }).then(function(object) {
+                    object.value = "remote value";
+                    return remoteDb.save(object);
+                }).then(function() {
+                    return db.syncWith(remoteDb);
+                }).then(function(result) {
+                    var query = request(object);
+                    return Q.all([
+                        db.get(query),
+                        remoteDb.get(query)
+                    ]);
+                }).then(function(result) {
+                    expect(StringUtils.startsWith(result[0]._rev, "2-")).toBe(true);
+                    expect(result[0]).toEqual(result[1]);
                 }).fail(log);
                 waitsFor(asyncTest);
             });

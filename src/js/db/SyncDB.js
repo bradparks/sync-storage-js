@@ -50,8 +50,9 @@ define([
             var version = parseRev(resultObject._rev).version;
             self.storageVersion.save(getCombinedKey(resultObject), resultObject);
             // TODO put lock on write
-            return self.storage.get(resultObject._id).then(function (lastObject) {
+            return self.get({_id:resultObject._id}).then(function (lastObject) {
                 if (!lastObject || parseRev(lastObject._rev).version < version) {
+                    console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
                     return self.storage.save(resultObject._id, resultObject);
                 }
                 return resultObject;
@@ -72,12 +73,21 @@ define([
             }
             resultObject._rev = version + "-" + randomAlpha(30);
             resultObject._timestamp = now;
-            return saveForce(self, resultObject);
+            delete resultObject._synced;
+            return $.extend({}, saveForce(self, resultObject));
         };
 
         classe.prototype.get = function (query) {
             var lookingStorage = query._rev ? this.storageVersion : this.storage;
-            return lookingStorage.get(getCombinedKey(query));
+            return lookingStorage.get(getCombinedKey(query)).then(function(object) {
+                if (!object) {
+                    return object;
+                }
+                var result = $.extend({}, object);
+                //result = object;
+                delete result._synced;
+                return result;
+            });
         };
 
         classe.prototype.del = function(query) {
@@ -115,8 +125,9 @@ define([
                 for (var key in result.rows) {
                     // docs attached to a timestamp
                     _.each(result.rows[key], function(doc) {
-                        doc._synced = true;
-                        promises.push(saveForce(destDb, doc));
+                        var resultDoc = $.extend({}, doc);
+                        resultDoc._synced = true;
+                        promises.push(saveForce(destDb, resultDoc));
                     });
                 }
                 return Q.all(promises).then(function(result) {
