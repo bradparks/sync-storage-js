@@ -7,6 +7,7 @@ define([
     function (SyncDB, $, Q, _) {
         describe('SyncDB', function () {
             var db;
+            var remoteDb;
             var object;
             var testOk;
             var asyncTest = function () {
@@ -22,6 +23,7 @@ define([
 
             beforeEach(function () {
                 db = new SyncDB("local");
+                remoteDb = new SyncDB("remote");
                 object = {value: "test"};
                 testOk = false;
             });
@@ -160,7 +162,7 @@ define([
             });
 
             it('sync with other syncDb', function() {
-                var remoteDb = new SyncDB("remote");
+
                 db.save(object).then(function(result) {
                     object = result;
                     return db.syncWith(remoteDb);
@@ -172,6 +174,47 @@ define([
                     return remoteDb.get(object);
                 }).then(function(result) {
                     expect(result).toEqual(object);
+                    testOk = true;
+                }).fail(log);
+                waitsFor(asyncTest);
+            });
+
+            it('sync with other syncDb (both ways, several objects)', function() {
+                var create = function(db, number) {
+                    var result = [];
+                    for (var i=0;i<number;i++) {
+                        result.push({
+                            value:"test"+i
+                        });
+                    }
+                    return _.map(result, function(object) {
+                        return db.save(object);
+                    });
+                }
+
+                // save 4 objects
+                Q.all(create(db, 4)).then(function(result) {
+                    // change the value of the 1st object
+                    object = result[0];
+                    object.value = "plop";
+                    // save object
+                    var promises = [db.save(object)];
+                    // add 2 new objects on remoteDb
+                    promises = promises.concat(create(remoteDb, 2));
+                    return Q.all(promises);
+                }).then(function(result) {
+                    // expect 3 objects saved
+                    expect(result.length).toBe(3);
+                    return db.syncWith(remoteDb);
+                }).then(function(result) {
+                    var syncResult = result;
+                    expect(syncResult.to.ok).toBe(true);
+                    expect(syncResult.from.ok).toBe(true);
+                    // expect 4 objects synchronized
+                    expect(syncResult.to.size).toBe(4);
+                    expect(syncResult.from.size).toBe(2);
+                    return remoteDb.get(object);
+                }).then(function(result) {
                     testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);
