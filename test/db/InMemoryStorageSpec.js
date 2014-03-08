@@ -22,7 +22,8 @@ define([
                 storage.save(key, objectOrigin).then(function () {
                     return storage.get(key);
                 }).then(function (object) {
-                    expect(object).toBe(objectOrigin);
+                    expect(object).toEqual(objectOrigin);
+                    expect(object).not.toBe(objectOrigin);
                     testOk = true;
                 });
                 waitsFor(asyncTest);

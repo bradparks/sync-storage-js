@@ -1,20 +1,21 @@
 define([
-    "q"
-], function (Q) {
+    "q",
+    "jquery"
+], function (Q, $) {
     var classe = function () {
     }
 
     classe.prototype.save = function (key, object) {
         var defer = Q.defer();
         this[key] = object;
-        defer.resolve(object);
+        defer.resolve($.extend({}, object));
         return defer.promise;
     }
 
     classe.prototype.get = function (key) {
         var defer = Q.defer();
         var val = this[key];
-        var result = val ? val : null;
+        var result = val ? $.extend({}, val) : null;
         defer.resolve(result);
         return defer.promise;
     }

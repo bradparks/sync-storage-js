@@ -74,7 +74,7 @@ define([
             resultObject._rev = version + "-" + randomAlpha(30);
             resultObject._timestamp = now;
             delete resultObject._synced;
-            return $.extend({}, saveForce(self, resultObject));
+            return saveForce(self, resultObject);
         };
 
         classe.prototype.get = function (query) {
@@ -83,9 +83,8 @@ define([
                 if (!object) {
                     return object;
                 }
-                var result = $.extend({}, object);
-                delete result._synced;
-                return result;
+                delete object._synced;
+                return object;
             });
         };
 
@@ -124,7 +123,7 @@ define([
                 for (var key in result.rows) {
                     // docs attached to a timestamp
                     _.each(result.rows[key], function(doc) {
-                        var resultDoc = $.extend({}, doc);
+                        var resultDoc = doc;
                         resultDoc._synced = true;
                         promises.push(saveForce(destDb, resultDoc));
                     });

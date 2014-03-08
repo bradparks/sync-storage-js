@@ -1,7 +1,8 @@
 define([
     "q",
+    "jquery",
     "utils/StringUtils"
-], function(Q, StringUtils) {
+], function(Q, $, StringUtils) {
     var classe = function(name, storage) {
         this.name = name;
         this.storage = storage;
@@ -45,7 +46,7 @@ define([
                 rows[key] = array;
                 totalKeys++;
             }
-            array.push(value);
+            array.push($.extend({}, value));
             total++;
         }
         return this.storage.getMap().then(function(map) {
