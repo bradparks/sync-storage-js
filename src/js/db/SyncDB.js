@@ -84,7 +84,6 @@ define([
                     return object;
                 }
                 var result = $.extend({}, object);
-                //result = object;
                 delete result._synced;
                 return result;
             });
