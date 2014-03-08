@@ -16,6 +16,10 @@ define([
                 console.error(object);
             }
 
+            var stringify = function(object) {
+                console.log(JSON.stringify(object));
+            }
+
             beforeEach(function () {
                 db = new SyncDB("local");
                 object = {value: "test"};
@@ -162,7 +166,9 @@ define([
                 }).then(function() {
                     return remoteDb.get(object);
                 }).then(function(result) {
-                    expec(result).toEqual(object);
+                    db.storage.getAll().then(stringify);
+                    remoteDb.storage.getAll().then(stringify);
+                    expect(result).toEqual(object);
                     testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);
