@@ -203,6 +203,7 @@ define([
                     promises = promises.concat(create(remoteDb, 2));
                     return Q.all(promises);
                 }).then(function(result) {
+                    object = result[0];
                     // expect 3 objects saved
                     expect(result.length).toBe(3);
                     return db.syncWith(remoteDb);
@@ -215,6 +216,7 @@ define([
                     expect(syncResult.from.size).toBe(2);
                     return remoteDb.get(object);
                 }).then(function(result) {
+                    expect(result).toEqual(object);
                     testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);
