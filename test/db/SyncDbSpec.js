@@ -130,11 +130,9 @@ define([
                         }
                     });
                     return db.query({
-                        mapFunction:function(emit) {
-                            return function(doc) {
-                                if (doc.value) {
-                                    emit(doc._id, doc);
-                                }
+                        mapFunction:function(emit, doc) {
+                            if (doc.value) {
+                                emit(doc._id, doc);
                             }
                         },
                         startkey:undefined,

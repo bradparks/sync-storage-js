@@ -52,7 +52,7 @@ define([
                 }
                 var doc = map[key];
                 if (typeof doc != 'function') {
-                    query.mapFunction(emit)(doc);
+                    query.mapFunction(emit, doc);
                 }
             }
             defer.resolve({
