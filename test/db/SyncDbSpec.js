@@ -163,11 +163,13 @@ define([
                 db.save(object).then(function(result) {
                     object = result;
                     return db.syncWith(remoteDb);
-                }).then(function() {
+                }).then(function(syncResult) {
+                    expect(syncResult.to.ok).toBe(true);
+                    expect(syncResult.from.ok).toBe(true);
+                    expect(syncResult.to.size).toBe(1);
+                    expect(syncResult.from.size).toBe(0);
                     return remoteDb.get(object);
                 }).then(function(result) {
-                    db.storage.getAll().then(stringify);
-                    remoteDb.storage.getAll().then(stringify);
                     expect(result).toEqual(object);
                     testOk = true;
                 }).fail(log);

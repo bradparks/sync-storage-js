@@ -142,7 +142,12 @@ define([
         classe.prototype.syncWith = function(destDb) {
             var self = this;
             return replicateTo(self, destDb).then(function(result) {
-                return replicateTo(destDb, self);
+                return replicateTo(destDb, self).then(function(result2) {
+                    return {
+                        to:result,
+                        from:result2
+                    };
+                });
             });
         }
 
