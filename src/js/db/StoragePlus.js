@@ -64,5 +64,13 @@ define([
         });
     }
 
+    classe.prototype.getAll = function() {
+        return this.query({
+            mapFunction:function(emit, doc) {
+                emit(doc._id, doc);
+            }
+        });
+    }
+
     return classe;
 });
