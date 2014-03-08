@@ -47,11 +47,17 @@ define([
         }
 
         var saveForce = function(self, resultObject) {
-            var version = parseRev(resultObject._rev).version;
+            var parsedRev = parseRev(resultObject._rev);
+            var version = parsedRev.version;
             self.storageVersion.save(getCombinedKey(resultObject), resultObject);
             // TODO put lock on write
             return self.get({_id:resultObject._id}).then(function (lastObject) {
-                if (!lastObject || parseRev(lastObject._rev).version < version) {
+                var shouldStore = !lastObject;
+                if (!shouldStore) {
+                    var lastRev = parseRev(lastObject._rev);
+                    shouldStore = lastRev.version < version;
+                }
+                if (shouldStore) {
                     console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
                     return self.storage.save(resultObject._id, resultObject);
                 }
