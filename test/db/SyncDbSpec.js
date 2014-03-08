@@ -162,7 +162,7 @@ define([
                     object = result;
                     return db.syncWith(remoteDb);
                 }).then(function() {
-                    return remoteDb.get(object)
+                    return remoteDb.get(object);
                 }).then(function(result) {
                     expec(result).toEqual(object);
                     testOk = true;
