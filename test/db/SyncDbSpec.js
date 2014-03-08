@@ -221,5 +221,5 @@ define([
                 }).fail(log);
                 waitsFor(asyncTest);
             });
-        })
+        });
     });
