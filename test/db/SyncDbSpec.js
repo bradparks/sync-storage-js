@@ -128,28 +128,29 @@ define([
                 }));
                 var objects = [];
                 Q.all(promises).then(function(result) {
-                    _.each(result, function(object) {
-                        if (object.value) {
-                            objects.push(object);
-                        }
-                    });
+                    objects = result;
                     return db.query({
                         mapFunction:function(emit, doc) {
                             if (doc.value) {
-                                emit(doc._id, doc);
+                                emit(doc.value, doc);
                             }
                         },
-                        startkey:undefined,
-                        endkey:undefined
+                        startkey:"test3",
+                        endkey:"test7"
                     });
                 }).then(function(result) {
                     var map = {};
+                    var total = 0;
                     for (var i = 0;i < objects.length;i++) {
-                        map[objects[i]._id] = [objects[i]];
+                        var object = objects[i];
+                        if (object.value && object.value >= "test3" && object.value <= "test7") {
+                            map[object.value] = [object];
+                            total++;
+                        }
                     }
                     var expected = {
-                       total_keys:10,
-                       total_rows:10,
+                       total_keys:total,
+                       total_rows:total,
                        rows: map
                     };
                     expect(result).toEqual(expected);

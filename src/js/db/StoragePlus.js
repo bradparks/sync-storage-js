@@ -36,6 +36,9 @@ define([
         var total = 0;
         var totalKeys = 0;
         var emit = function(key, value) {
+            if (query.startkey && key < query.startkey || query.endkey && key > query.endkey) {
+                return;
+            }
             var array = rows[key];
             if (!array) {
                 array = [];
