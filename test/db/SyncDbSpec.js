@@ -1,9 +1,10 @@
 define([
     "db/SyncDB",
     "jquery",
-    "q"
+    "q",
+    "underscore"
 ],
-    function (SyncDB, $, Q) {
+    function (SyncDB, $, Q, _) {
         describe('SyncDB', function () {
             var db;
             var object;
@@ -112,13 +113,28 @@ define([
             });
 
             it('query docs by value', function () {
-                db.save(object).then(function(result) {
-                    object = result;
-                }).then(function() {
+                var promises = [];
+                for (var i=0;i<10;i++) {
+                    promises.push(db.save({
+                        value: "test"+i
+                    }));
+                }
+                promises.push(db.save({
+                    plop:"not queried"
+                }));
+                var objects = [];
+                Q.all(promises).then(function(result) {
+                    _.each(result, function(object) {
+                        if (object.value) {
+                            objects.push(object);
+                        }
+                    });
                     return db.query({
                         mapFunction:function(emit) {
                             return function(doc) {
-                                emit(doc._id, doc);
+                                if (doc.value) {
+                                    emit(doc._id, doc);
+                                }
                             }
                         },
                         startkey:undefined,
@@ -126,10 +142,12 @@ define([
                     });
                 }).then(function(result) {
                     var map = {};
-                    map[object._id] = [object];
+                    for (var i = 0;i < objects.length;i++) {
+                        map[objects[i]._id] = [objects[i]];
+                    }
                     var expected = {
-                       total_keys:1,
-                       total_rows:1,
+                       total_keys:10,
+                       total_rows:10,
                        rows: map
                     };
                     expect(result).toEqual(expected);

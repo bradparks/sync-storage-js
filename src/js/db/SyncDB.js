@@ -20,10 +20,10 @@ define([
             this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
         };
 
-        var generateHash = function () {
+        var randomAlpha = function (size) {
             var dic = "0987654321azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN";
             var hash = "";
-            for (var i = 0; i < 30; i++) {
+            for (var i = 0; i < size; i++) {
                 hash += dic.charAt(_.random(0, dic.length - 1));
             }
             return hash;
@@ -41,14 +41,14 @@ define([
             var self = this;
             var resultObject = $.extend({}, object);
             if (!resultObject._id) {
-                resultObject._id = new Date().getTime() + "";
+                resultObject._id = new Date().getTime() + randomAlpha(10);
             }
             var version = 1;
             if (resultObject._rev) {
                 var version = parseRev(resultObject._rev).version;
                 version++;
             }
-            resultObject._rev = version + "-" + generateHash();
+            resultObject._rev = version + "-" + randomAlpha(30);
             var combinedKey = resultObject._id + "/" + resultObject._rev;
             self.storageVersion.save(combinedKey, resultObject);
             // TODO put lock on write
