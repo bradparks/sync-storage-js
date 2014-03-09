@@ -58,6 +58,8 @@ define([
             });
         }
 
+        // object should contains _rev field, being the _rev field of the last version of object in the database
+        // if object is a new object, object should not contain a _rev field
         classe.prototype.save = function (object) {
             var self = this;
             var resultObject = $.extend({}, object);
@@ -76,6 +78,9 @@ define([
             return saveForce(self, resultObject);
         };
 
+        // query should contain an _id field
+        // if query contains a _rev field, this specific version will looked for
+        // returns null if not found
         classe.prototype.get = function (query) {
             var lookingStorage = query._rev ? this.storageVersion : this.storage;
             return lookingStorage.get(getCombinedKey(query)).then(function(object) {
@@ -87,11 +92,25 @@ define([
             });
         };
 
+        // query should contain an _id field
+        // if query contains a _rev field, this specific version will looked for
         classe.prototype.del = function(query) {
             var lookingStorage = query._rev ? this.storageVersion : this.storage;
             return lookingStorage.del(getCombinedKey(query));
         }
 
+        /*
+         query.mapFunction : function to filter and map objects of the query
+         signature :
+         function(emit, doc) {
+            //... your logic here
+            emit(KEY, VALUE);
+         }
+         results will be grouped by KEY and only VALUE will be returned.
+
+         query.startkey : lower bound for KEY (optional)
+         query.endkey : higher bound for KEY (optional)
+         */
         classe.prototype.query = function(query) {
             if (!query.mapFunction) {
                 throw "mapFunction must be defined in the query";
