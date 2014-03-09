@@ -1,5 +1,4 @@
 define([
-    "PouchDB",
     "jquery",
     "utils/StringUtils",
     "underscore",
@@ -8,7 +7,7 @@ define([
     "db/InMemoryStorage",
     "Random"
 ],
-    function (PouchDB, $, StringUtils, _, Q, StoragePlus, Storage, Random) {
+    function ($, StringUtils, _, Q, StoragePlus, Storage, Random) {
         var classe = function (url, simpleStorage) {
             this.name = url;
             this.isLocal = !StringUtils.startsWith(url, "http");
