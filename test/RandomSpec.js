@@ -15,6 +15,15 @@ function (Random) {
             }
         });
 
+        it('returns a random alpha string', function () {
+            var reg = new RegExp("["+random.alphaDic+"]{10}");
+            for (var i=0;i<loops;i++) {
+                var string = random.nextAlpha(10);
+                expect(string.length).toBe(10);
+                expect(string).toMatch(reg);
+            }
+        });
+
         it('return a number between 0 inclusive and 1 exclusive', function () {
             for (var i=0;i<loops;i++) {
                 expect(random.nextNumber() < 1).toBe(true);

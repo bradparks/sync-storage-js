@@ -25,8 +25,15 @@ define([
 
     classe.prototype.alphaDic = "0987654321POIUYTREZAMLKJHGFDSQNBVCXWpoiuytrezamlkjhgfdsqnbvcxw";
 
-    classe.prototype.nextAlpha = function() {
-        return this.alphaDic.charAt(this.nextInt(0, this.alphaDic.length-1));
+    classe.prototype.nextAlpha = function(size) {
+        if (!size) {
+            size = 1;
+        }
+        var result = "";
+        for (var i=0;i<size;i++) {
+            result += this.alphaDic.charAt(this.nextInt(0, this.alphaDic.length-1));
+        }
+        return result;
     }
 
     return classe;
