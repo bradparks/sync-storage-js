@@ -1,4 +1,8 @@
-define(["utils/ObjectUtils", "synchronize/Change", "utils/ArrayUtils"], function(ObjectUtils, Change) {
+define([
+"utils/ObjectUtils",
+"synchronize/Change",
+"utils/ArrayUtils"
+], function(ObjectUtils, Change) {
 
    var classe = function Synchronizer() {
         this.equalsFunction = function(object1, object2) {

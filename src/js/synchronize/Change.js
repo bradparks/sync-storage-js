@@ -1,5 +1,8 @@
 // contains a synchronize change
-define(["utils/ObjectUtils", "utils/Utils"], function(ObjectUtils, Utils) {
+define([
+"utils/ObjectUtils",
+"utils/Utils"
+], function(ObjectUtils, Utils) {
 
     var classe = function Change(key, oldValue, newValue, type) {
         this.key = key;
