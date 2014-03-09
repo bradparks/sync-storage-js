@@ -16,6 +16,11 @@ define([
             }
             this.storage = new StoragePlus(url, simpleStorage);
             this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
+            this.onConflict = function(doc1, doc2) {
+                console.error("Conflict detected. This method should be overriden. doc1 and doc2 in conflicts :");
+                console.error(doc1);
+                console.error(doc2);
+            }
         };
 
         classe.prototype.random = new Random();
@@ -49,6 +54,10 @@ define([
                 if (!shouldStore) {
                     var lastRev = parseRev(lastObject._rev);
                     shouldStore = lastRev.version < version || lastRev.version === version && lastRev.hash > parsedRev.hash;
+                    if (lastRev.version >= version) {
+                        // case conflict
+                        self.onConflict(lastObject, resultObject);
+                    }
                 }
                 if (shouldStore) {
                     console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
