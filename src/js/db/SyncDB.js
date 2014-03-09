@@ -5,9 +5,10 @@ define([
     "underscore",
     "q",
     "db/StoragePlus",
-    "db/InMemoryStorage"
+    "db/InMemoryStorage",
+    "Random"
 ],
-    function (PouchDB, $, StringUtils, _, Q, StoragePlus, Storage) {
+    function (PouchDB, $, StringUtils, _, Q, StoragePlus, Storage, Random) {
         var classe = function (url, simpleStorage) {
             this.name = url;
             this.isLocal = !StringUtils.startsWith(url, "http");
@@ -18,14 +19,7 @@ define([
             this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
         };
 
-        var randomAlpha = function (size) {
-            var dic = "0987654321azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN";
-            var hash = "";
-            for (var i = 0; i < size; i++) {
-                hash += dic.charAt(_.random(0, dic.length - 1));
-            }
-            return hash;
-        };
+        classe.prototype.random = new Random();
 
         var parseRev = function (revString) {
             var split = revString.split('-');
@@ -70,14 +64,14 @@ define([
             var resultObject = $.extend({}, object);
             var now = new Date().getTime();
             if (!resultObject._id) {
-                resultObject._id = now + randomAlpha(10);
+                resultObject._id = now + self.random.nextAlpha(10);
             }
             var version = 1;
             if (resultObject._rev) {
                 var version = parseRev(resultObject._rev).version;
                 version++;
             }
-            resultObject._rev = version + "-" + randomAlpha(30);
+            resultObject._rev = version + "-" + self.random.nextAlpha(30);
             resultObject._timestamp = now;
             delete resultObject._synced;
             return saveForce(self, resultObject);
