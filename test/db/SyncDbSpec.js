@@ -3,14 +3,16 @@ define([
     "jquery",
     "q",
     "underscore",
-    "utils/StringUtils"
+    "utils/StringUtils",
+    "db/LocalForageBridge"
 ],
-    function (SyncDB, $, Q, _, StringUtils) {
+    function (SyncDB, $, Q, _, StringUtils, LocalForageBridge) {
         describe('SyncDB', function () {
             var db;
             var remoteDb;
             var object;
             var testOk;
+
             var create = function(db, number) {
                 var result = [];
                 for (var i=0;i<number;i++) {
@@ -37,8 +39,9 @@ define([
             }
 
             beforeEach(function () {
-                db = new SyncDB("local");
-                remoteDb = new SyncDB("remote");
+                var simpleStorage = new LocalForageBridge();
+                db = new SyncDB("local", simpleStorage);
+                remoteDb = new SyncDB("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
             });

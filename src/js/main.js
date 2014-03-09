@@ -6,7 +6,8 @@ require.config({
         "PouchDB":"../lib/PouchDb/PouchDb",
         "bootstrap":"../lib/bootstrap/js/bootstrap.min",
         "q":"../lib/q/q",
-        "underscore":"../lib/underscore/underscore.min"
+        "underscore":"../lib/underscore/underscore.min",
+        "localForage":"../lib/localForage/localForage.min"
     },
     shim: {
         "bootstrap":["jquery"],

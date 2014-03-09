@@ -13,7 +13,8 @@ requirejs.config({
         'PouchDB': '../lib/PouchDb/PouchDb',
         'jquery': '../lib/jquery/jquery',
         'underscore': '../lib/underscore/underscore.min',
-        'q': '../lib/q/q'
+        'q': '../lib/q/q',
+        "localForage":"../lib/localForage/localForage.min"
     },
 
     shim: {
