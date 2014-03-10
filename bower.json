@@ -1,0 +1,32 @@
+{
+  "name": "SyncDB",
+  "version": "0.0.0",
+  "homepage": "https://github.com/remy-auricoste/SyncDB",
+  "description": "db that sync !",
+  "main": "src/js/main.js",
+  "keywords": [
+    "db",
+    "sync",
+    "localForage",
+    "async",
+    "q"
+  ],
+  "authors": [
+    "Rémy Auricoste"
+  ],
+  "license": "GNU GPL version 3",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "underscore": "~1.6.0",
+    "jquery": "~2.1.0",
+    "q": "~1.0.0",
+    "requirejs": "~2.1.11"
+  }
+}
