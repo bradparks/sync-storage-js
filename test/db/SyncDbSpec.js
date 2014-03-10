@@ -153,12 +153,7 @@ define([
             });
 
             it('query docs by value', function () {
-                var promises = [];
-                for (var i=0;i<10;i++) {
-                    promises.push(db.save({
-                        value: "test"+i
-                    }));
-                }
+                var promises = create(10);
                 promises.push(db.save({
                     plop:"not queried"
                 }));
