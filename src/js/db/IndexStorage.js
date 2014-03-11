@@ -11,19 +11,19 @@ define([
             return;
         }
         return self.getAll().then(function(result) {
+            if (_.size(self.buffer) == 0) {
+                return;
+            }
             var array = result;
             if (!array) {
                 array = {};
             }
-            var key;
-            var value;
-            for (var key2 in self.buffer) {
-                key = key2;
+            for (var key in self.buffer) {
                 value = self.buffer[key];
-                break;
+                //console.log("adding key "+key);
+                array[key] = value;
             }
-            delete self.buffer[key];
-            array[key] = value;
+            self.buffer = {};
             return self.storage.save("_all", array);
         }).then(function() {
             return checkBuffer(self);
