@@ -41,7 +41,7 @@ define([
             beforeEach(function () {
                 console.log("starting test...");
                 var simpleStorage = new LocalForageBridge();
-                simpleStorage = null;
+                //simpleStorage = null;
                 db = new SyncDB("local", simpleStorage);
                 remoteDb = new SyncDB("remote", simpleStorage);
                 object = {value: "test"};
@@ -111,8 +111,6 @@ define([
                         object.value = "plop";
                         return db.get(request(object));
                     }).then(function(result) {
-                        stringify(result);
-                        stringify(object);
                         expect(object).not.toEqual(result);
                         expect(object.value).not.toEqual(result.value);
                         testOk = true;
@@ -178,7 +176,6 @@ define([
                     var total = 0;
                     for (var i = 0;i < objects.length;i++) {
                         var object = objects[i];
-                        stringify(object);
                         if (object.value && object.value >= "test3" && object.value <= "test7") {
                             map[object.value] = [object];
                             total++;
