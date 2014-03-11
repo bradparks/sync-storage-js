@@ -121,10 +121,11 @@ define([
          query.endkey : higher bound for KEY (optional)
          */
         classe.prototype.query = function(query) {
-            if (!query.mapFunction) {
-                throw "mapFunction must be defined in the query";
-            }
-            return this.storage.query(query);
+            console.log("query="+JSON.stringify(query));
+            return this.storage.query(query).then(function(result) {
+                console.log("result query="+JSON.stringify(result));
+                return result;
+            });
         }
 
         var replicateTo = function(self, destDb) {
@@ -140,12 +141,14 @@ define([
                         }
                     },
                     startkey:lastRep,
-                    endkey:endRep
+                    endkey:endRep,
+                    indexDef:"_timestamp"
                 });
             }).then(function(result) {
                 if (result.total_rows === 0) {
                     return 0;
                 }
+                //console.log(JSON.stringify(result, null, 2));
                 var promises = [];
                 for (var key in result.rows) {
                     // docs attached to a timestamp

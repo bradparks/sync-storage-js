@@ -1,12 +1,16 @@
 define([
     "q",
     "jquery",
-    "utils/StringUtils"
-], function(Q, $, StringUtils) {
-    var classe = function(name, storage) {
+    "utils/StringUtils",
+    "db/IndexStorage",
+    "underscore"
+], function(Q, $, StringUtils, IndexStorage, _) {
+    var classe = function(name, storage, indexStorage) {
         this.name = name;
         this.storage = storage;
-        this.indexStorage = null;
+        if (!indexStorage) {
+            this.indexStorage = new IndexStorage(new classe("__index__"+name, storage, true));
+        }
     }
 
     var getPrefix = function(self) {
@@ -18,7 +22,11 @@ define([
     }
 
     classe.prototype.save = function(key, object) {
-        return this.storage.save(getNewKey(this, key), object);
+        var newKey = getNewKey(this, key);
+        if (this.indexStorage) {
+            this.indexStorage.addIndexKey(key, object);
+        }
+        return this.storage.save(newKey, object);
     };
 
     classe.prototype.get = function(key) {
@@ -30,9 +38,17 @@ define([
     }
 
     classe.prototype.query = function(query) {
+        if (!this.indexStorage) {
+            throw "not supported : this is an index storage";
+        }
+        if (!query.mapFunction) {
+            throw "mapFunction must be defined in the query";
+        }
+        if (!query.indexDef) {
+            throw "indexDef must be defined in the query";
+        }
         // TODO create index to fasten search
         var self = this;
-        var defer = Q.defer();
         var rows = {};
         var total = 0;
         var totalKeys = 0;
@@ -49,22 +65,24 @@ define([
             array.push($.extend({}, value));
             total++;
         }
-        return this.storage.getMap().then(function(map) {
-            for (var key in map) {
-                if (!StringUtils.startsWith(key, getPrefix(self))) {
-                    continue;
-                }
-                var doc = map[key];
-                if (typeof doc != 'function') {
-                    query.mapFunction(emit, doc);
-                }
-            }
-            defer.resolve({
-                total_keys:totalKeys,
-                total_rows:total,
-                rows:rows
+        return this.indexStorage.getAll().then(function(indexes) {
+            // TODO use map function
+            var promises = [];
+            _.each(indexes, function(value, key) {
+                promises.push(self.get(key).then(function(doc) {
+                    if (doc) {
+                        query.mapFunction(emit, doc);
+                    }
+                }));
             });
-            return defer.promise;
+
+            return Q.all(promises).then(function() {
+                return {
+                    total_keys:totalKeys,
+                    total_rows:total,
+                    rows:rows
+                };
+            });
         });
     }
 
@@ -72,7 +90,8 @@ define([
         return this.query({
             mapFunction:function(emit, doc) {
                 emit(doc._id, doc);
-            }
+            },
+            indexDef:"_id"
         });
     }
 

@@ -2,8 +2,9 @@ define([
 "db/SyncDB",
 "db/LocalForageBridge",
 "utils/FunctionUtils",
-"localForage"
-], function(SyncDB, LocalForageBridge, FunctionUtils, localForage) {
+"localForage",
+"q"
+], function(SyncDB, LocalForageBridge, FunctionUtils, localForage, Q) {
     return function() {
         // hack to fix localForage init bug
         // https://github.com/mozilla/localForage/issues/65
@@ -14,15 +15,29 @@ define([
             db.save({
                 value:"plop"
             });
+            var input = new Date().getTime();
+            var promises = [];
             for (var i=0;i<100;i++) {
-                setTimeout(function() {
-                    var j = i;
-                    db.save({
-
-                        value:"plop"+j
-                    });
-                }, i);
+                var promise = db.save({
+                    value:"plop"
+                });
+                promises.push(promise);
             }
+            Q.all(promises).then(function() {
+                var startQuery = new Date().getTime();
+                db.query({
+                    mapFunction:function(emit, doc) {
+                        emit(doc._id, doc);
+                    },
+                    startkey:input+"",
+                    endkey:startQuery+""
+                }).then(function(result) {
+                    var endQuery = new Date().getTime();
+                    alert("elapsed time = "+(endQuery - startQuery));
+                    console.log(result);
+                });
+            });
+
         });
     };
 });
