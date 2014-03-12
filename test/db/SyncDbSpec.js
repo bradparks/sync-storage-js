@@ -41,7 +41,7 @@ define([
             beforeEach(function () {
                 console.log("starting test...");
                 var simpleStorage = new LocalForageBridge();
-                //simpleStorage = null;
+                simpleStorage = null;
                 db = new SyncDB("local", simpleStorage);
                 remoteDb = new SyncDB("remote", simpleStorage);
                 object = {value: "test"};
