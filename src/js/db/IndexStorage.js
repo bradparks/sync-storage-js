@@ -24,6 +24,7 @@ define([
                 array[key] = value;
             }
             self.buffer = {};
+            //console.log("save _all="+JSON.stringify(array));
             return self.storage.save("_all", array);
         }).then(function() {
             return checkBuffer(self);
@@ -37,6 +38,7 @@ define([
 
     classe.prototype.getAll = function() {
         return this.storage.get("_all").then(function(result) {
+            //console.log("result _all="+JSON.stringify(result));
             return result ? result : {};
         });
     }
