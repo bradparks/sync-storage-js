@@ -66,14 +66,12 @@ define([
             total++;
         }
         return this.indexStorage.getAll().then(function(indexes) {
-            // TODO use map function
-            var promises = [];
-            _.each(indexes, function(value, key) {
-                promises.push(self.get(key).then(function(doc) {
+            var promises = _.map(indexes, function(value, key) {
+                return self.get(key).then(function(doc) {
                     if (doc) {
                         query.mapFunction(emit, doc);
                     }
-                }));
+                });
             });
 
             return Q.all(promises).then(function() {
