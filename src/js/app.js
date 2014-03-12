@@ -27,10 +27,11 @@ define([
                 var startQuery = new Date().getTime();
                 db.query({
                     mapFunction:function(emit, doc) {
-                        emit(doc._id, doc);
+                        emit(doc._timestamp, doc);
                     },
                     startkey:input+"",
-                    endkey:startQuery+""
+                    endkey:startQuery+"",
+                    indexDef:"_timestamp"
                 }).then(function(result) {
                     var endQuery = new Date().getTime();
                     alert("elapsed time = "+(endQuery - startQuery));
