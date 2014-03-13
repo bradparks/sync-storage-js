@@ -4,7 +4,7 @@ define([
     "underscore",
     "q",
     "db/StoragePlus",
-    "db/InMemoryStorage",
+    "basicStorage/InMemoryStorage",
     "Random"
 ],
     function ($, StringUtils, _, Q, StoragePlus, Storage, Random) {
