@@ -17,7 +17,7 @@ define([
             });
             var input = new Date().getTime();
             var promises = [];
-            for (var i=0;i<100;i++) {
+            for (var i=0;i<50;i++) {
                 var promise = db.save({
                     value:"plop"
                 });
@@ -25,16 +25,18 @@ define([
             }
             Q.all(promises).then(function() {
                 var startQuery = new Date().getTime();
-                db.query({
-                    mapFunction:function(emit, doc) {
-                        emit(doc._timestamp, doc);
-                    },
-                    startkey:input+"",
-                    endkey:startQuery+"",
-                    indexDef:"_timestamp"
+                db.waitIndex().then(function() {
+                    return db.query({
+                        mapFunction:function(emit, doc) {
+                            emit(doc._timestamp, doc);
+                        },
+                        startkey:input+"",
+                        endkey:startQuery+"",
+                        indexDef:"_timestamp"
+                    });
                 }).then(function(result) {
                     var endQuery = new Date().getTime();
-                    alert("elapsed time = "+(endQuery - startQuery));
+                    console.log("elapsed time = "+(endQuery - startQuery));
                     console.log(result);
                 });
             });

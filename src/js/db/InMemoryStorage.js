@@ -1,7 +1,8 @@
 define([
     "q",
-    "jquery"
-], function (Q, $) {
+    "jquery",
+    "underscore"
+], function (Q, $, _) {
     var classe = function () {
     }
 
@@ -25,6 +26,16 @@ define([
         var exists = this[key] ? true : false;
         delete this[key];
         defer.resolve(exists);
+        return defer.promise;
+    }
+
+    classe.prototype.destroy = function() {
+        var defer = Q.defer();
+        _.each(this, function(value, key) {
+            console.log("delete "+key);
+            delete this[key];
+        });
+        defer.resolve();
         return defer.promise;
     }
 

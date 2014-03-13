@@ -190,5 +190,17 @@ define([
             });
         }
 
+        classe.prototype.waitIndex = function() {
+            return this.storage.waitIndex();
+        }
+
+        classe.prototype.destroy = function() {
+            var self = this;
+            return Q.all([
+                self.storage.destroy(),
+                self.storageVersion.destroy()
+            ]);
+        }
+
         return classe;
     });

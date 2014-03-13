@@ -4,8 +4,7 @@ define([
 ], function(_, FunctionUtils) {
     var classe = function(storage) {
         this.storage = storage;
-        this.buffer = {};
-        this.lock = false;
+        init(this);
     }
 
     var checkBuffer = function(self) {
@@ -17,18 +16,24 @@ define([
                 return;
             }
             FunctionUtils.onCondition(function() {
-                return !self.lock;
+                var pass = false;
+                if (!self.lock) {
+                    self.lock = true;
+                    pass = true;
+                }
+                return pass;
             }, function() {
-                self.lock = true;
                 var array = result;
                 if (!array) {
                     array = {};
                 }
+                console.log("adding buffer...")
                 for (var key in self.buffer) {
-                    value = self.buffer[key];
-                    //console.log("adding key "+key);
+                    var value = self.buffer[key];
+                    //console.log("adding key "+key+", value="+JSON.stringify(value));
                     array[key] = value;
                 }
+                //console.log("saving array="+JSON.stringify(array));
                 self.buffer = {};
                 //console.log("save _all="+JSON.stringify(array));
                 return self.storage.save("_all", array).then(function() {
@@ -49,6 +54,22 @@ define([
         return this.storage.get("_all").then(function(result) {
             //console.log("result _all="+JSON.stringify(result));
             return result ? result : {};
+        });
+    }
+
+    classe.prototype.waitIndex = function() {
+        return checkBuffer(this);
+    }
+
+    var init = function(self) {
+        self.buffer = {};
+        self.lock = false;
+    }
+
+    classe.prototype.destroy = function() {
+        var self = this;
+        return this.storage.destroy().then(function() {
+            init(self);
         });
     }
     

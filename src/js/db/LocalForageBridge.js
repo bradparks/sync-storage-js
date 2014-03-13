@@ -26,5 +26,9 @@ define([
         return defer.promise;
     }
 
+    classe.prototype.destroy = function() {
+        throw "not supported";
+    }
+
     return classe;
 });

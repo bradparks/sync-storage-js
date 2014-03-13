@@ -5,11 +5,11 @@ define([
     "db/IndexStorage",
     "underscore"
 ], function(Q, $, StringUtils, IndexStorage, _) {
-    var classe = function(name, storage, indexStorage) {
+    var classe = function(name, basicStorage, indexStorage) {
         this.name = name;
-        this.storage = storage;
+        this.storage = basicStorage;
         if (!indexStorage) {
-            this.indexStorage = new IndexStorage(new classe("__index__"+name, storage, true));
+            this.indexStorage = new IndexStorage(new classe("__index__"+name, this.storage, true));
         }
     }
 
@@ -90,6 +90,22 @@ define([
                 emit(doc._id, doc);
             },
             indexDef:"_id"
+        });
+    }
+
+    classe.prototype.waitIndex = function() {
+        if (this.indexStorage) {
+            return this.indexStorage.waitIndex();
+        }
+    }
+
+    classe.prototype.destroy = function() {
+        var self = this;
+        return this.storage.destroy().then(function() {
+            if (self.indexStorage) {
+                return self.indexStorage.destroy();
+            }
+            return true;
         });
     }
 

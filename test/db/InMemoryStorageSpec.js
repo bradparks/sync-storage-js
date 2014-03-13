@@ -28,5 +28,13 @@ define([
                 });
                 waitsFor(asyncTest);
             });
+
+            it('destroys', function () {
+                storage.destroy().then(function() {
+                    expect(storage).toEqual(new Storage());
+                    testOk = true;
+                });
+                waitsFor(asyncTest);
+            });
         })
     });
