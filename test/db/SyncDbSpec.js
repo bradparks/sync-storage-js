@@ -240,6 +240,8 @@ define([
             });
 
             it('sync with other syncDb (conflicts)', function() {
+                var object1;
+                var object2;
                  // save 1 object
                 Q.all(create(db, 1)).then(function(result) {
                     object = result[0];
@@ -250,13 +252,20 @@ define([
                     object.value = "local value";
                     return db.save(object);
                 }).then(function(result) {
+                    object1 = result;
                     return remoteDb.get(request(object));
                 }).then(function(object) {
                     object.value = "remote value";
                     return remoteDb.save(object);
-                }).then(function() {
-                    return db.syncWith(remoteDb);
                 }).then(function(result) {
+                    object2 = result;
+                    return db.syncWith(remoteDb);
+                }).then(function() {
+                    return Q.all([
+                        db.waitIndex(),
+                        remoteDb.waitIndex()
+                    ]);
+                }).then(function() {
                     var query = request(object);
                     return Q.all([
                         db.get(query),
@@ -264,7 +273,38 @@ define([
                     ]);
                 }).then(function(result) {
                     expect(StringUtils.startsWith(result[0]._rev, "2-")).toBe(true);
+                    expect(StringUtils.startsWith(result[1]._rev, "2-")).toBe(true);
+                    expect(StringUtils.startsWith(object1._rev, "2-")).toBe(true);
+                    expect(StringUtils.startsWith(object2._rev, "2-")).toBe(true);
                     expect(result[0]).toEqual(result[1]);
+                    expect(object1).not.toEqual(object2);
+
+                    return Q.all([
+                        db.get({_id:object1._id, _rev:object1._rev}),
+                        db.get({_id:object2._id, _rev:object2._rev}),
+                    ]);
+                }).then(function(array) {
+                    expect(array[0]).not.toBe(null);
+                    expect(array[1]).not.toBe(null);
+                    stringify(array);
+
+
+                    expect(array[0]).not.toEqual(array[1]);
+                    var conflicted = array[0]._rev < array[1]._rev ? array[0] : array[1];
+                    expect(conflicted._conflict).toBe(true);
+                    delete array[1]._conflict;
+                    delete array[0]._conflict;
+                    delete array[1]._timestamp;
+                    delete array[0]._timestamp;
+                    delete object1._timestamp;
+                    delete object2._timestamp;
+                    expect(array[0]).toEqual(object1);
+                    expect(array[1]).toEqual(object2);
+
+
+                }).then(function() {
+
+
                     testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);

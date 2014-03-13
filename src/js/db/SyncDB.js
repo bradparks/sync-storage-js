@@ -9,6 +9,7 @@ define([
 ],
     function ($, StringUtils, _, Q, StoragePlus, Storage, Random) {
         var classe = function (url, simpleStorage) {
+            var self = this;
             this.name = url;
             this.isLocal = !StringUtils.startsWith(url, "http");
             if (!simpleStorage) {
@@ -17,7 +18,7 @@ define([
             this.storage = new StoragePlus(url, simpleStorage);
             this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
             this.onConflict = function(doc1, doc2) {
-                console.error("Conflict detected. This method should be overriden. doc1 and doc2 in conflicts :");
+                console.error("Conflict detected on "+self.name+". This method should be overriden. doc1 and doc2 in conflicts :");
                 console.error(doc1);
                 console.error(doc2);
             }
@@ -44,21 +45,33 @@ define([
             return key;
         }
 
-        var saveForce = function(self, resultObject) {
+        var saveForce = function(self, resultObject, conflicts) {
             var parsedRev = parseRev(resultObject._rev);
             var version = parsedRev.version;
-            self.storageVersion.save(getCombinedKey(resultObject), resultObject);
             // TODO put lock on write
             return self.get({_id:resultObject._id}).then(function (lastObject) {
                 var shouldStore = !lastObject;
                 if (!shouldStore) {
                     var lastRev = parseRev(lastObject._rev);
-                    shouldStore = lastRev.version < version || lastRev.version === version && lastRev.hash > parsedRev.hash;
+                    shouldStore = lastRev.version < version || lastRev.version === version && lastRev.hash < parsedRev.hash;
                     if (lastRev.version >= version) {
                         // case conflict
-                        self.onConflict(lastObject, resultObject);
+                        var result = self.onConflict(lastObject, resultObject);
+                        if (!result) {
+                            // no solution to conflict
+                            var loseVersion = !shouldStore ? resultObject : lastObject;
+                            loseVersion._conflict = true;
+                            var logObject = {_id:loseVersion._id, _rev:loseVersion._rev};
+                            console.warn(JSON.stringify(logObject)+" marked as conflicted");
+                            if (loseVersion == lastObject) {
+                                lastObject._timestamp = new Date().getTime();
+                                delete lastObject._synced;
+                                self.storageVersion.save(getCombinedKey(lastObject), lastObject);
+                            }
+                        }
                     }
                 }
+                self.storageVersion.save(getCombinedKey(resultObject), resultObject);
                 if (shouldStore) {
                     console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
                     return self.storage.save(resultObject._id, resultObject);
@@ -77,14 +90,17 @@ define([
                 resultObject._id = now + self.random.nextAlpha(10);
             }
             var version = 1;
+            var conflicts;
             if (resultObject._rev) {
                 var version = parseRev(resultObject._rev).version;
                 version++;
+                conflicts = resultObject._rev;
             }
             resultObject._rev = version + "-" + self.random.nextAlpha(30);
             resultObject._timestamp = now;
             delete resultObject._synced;
-            return saveForce(self, resultObject);
+            delete resultObject._conflict;
+            return saveForce(self, resultObject, conflicts);
         };
 
         // query should contain an _id field
@@ -129,12 +145,14 @@ define([
         }
 
         var replicateTo = function(self, destDb) {
-            return self.storage.get({
-                _id:"$repTo$"+destDb.name
-            }).then(function(result) {
+            var repKey = "$repTo$"+destDb.name;
+            var endRep;
+            return self.storage.get(repKey
+            ).then(function(result) {
                 var lastRep = result ? result._timestamp : undefined;
-                var endRep = new Date().getTime();
-                return self.query({
+                endRep = new Date().getTime();
+                console.log("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
+                return self.storageVersion.query({
                     mapFunction:function(emit, doc) {
                         if (!doc._synced) {
                             emit(doc._timestamp, doc);
@@ -166,8 +184,14 @@ define([
                     ok:true,
                     size:size
                 };
-                console.log("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(result));
                 return result;
+            }).then(function(result) {
+                return self.storage.save(repKey, {
+                    _timestamp:endRep
+                }).then(function() {
+                    console.log("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(result));
+                    return result;
+                });
             }).fail(function(err) {
                 console.log("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(err));
                 // rollback rep
