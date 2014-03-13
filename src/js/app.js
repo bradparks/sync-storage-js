@@ -1,6 +1,6 @@
 define([
 "db/SyncDB",
-"db/LocalForageBridge",
+"basicStorage/LocalForageBridge",
 "utils/FunctionUtils",
 "localForage",
 "q"

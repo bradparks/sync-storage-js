@@ -4,9 +4,8 @@ define([
     "q",
     "underscore",
     "utils/StringUtils",
-    "db/LocalForageBridge"
 ],
-    function (SyncDB, $, Q, _, StringUtils, LocalForageBridge) {
+    function (SyncDB, $, Q, _, StringUtils) {
         describe('SyncDB', function () {
             var db;
             var remoteDb;
@@ -40,8 +39,7 @@ define([
 
             beforeEach(function () {
                 console.log("starting test...");
-                var simpleStorage = new LocalForageBridge();
-                simpleStorage = null;
+                var simpleStorage = null;
                 db = new SyncDB("local", simpleStorage);
                 remoteDb = new SyncDB("remote", simpleStorage);
                 object = {value: "test"};
