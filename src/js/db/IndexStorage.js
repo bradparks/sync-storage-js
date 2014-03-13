@@ -1,9 +1,11 @@
 define([
-"underscore"
-], function(_) {
+"underscore",
+"utils/FunctionUtils"
+], function(_, FunctionUtils) {
     var classe = function(storage) {
         this.storage = storage;
         this.buffer = {};
+        this.lock = false;
     }
 
     var checkBuffer = function(self) {
@@ -14,18 +16,25 @@ define([
             if (_.size(self.buffer) == 0) {
                 return;
             }
-            var array = result;
-            if (!array) {
-                array = {};
-            }
-            for (var key in self.buffer) {
-                value = self.buffer[key];
-                //console.log("adding key "+key);
-                array[key] = value;
-            }
-            self.buffer = {};
-            //console.log("save _all="+JSON.stringify(array));
-            return self.storage.save("_all", array);
+            FunctionUtils.onCondition(function() {
+                return !self.lock;
+            }, function() {
+                self.lock = true;
+                var array = result;
+                if (!array) {
+                    array = {};
+                }
+                for (var key in self.buffer) {
+                    value = self.buffer[key];
+                    //console.log("adding key "+key);
+                    array[key] = value;
+                }
+                self.buffer = {};
+                //console.log("save _all="+JSON.stringify(array));
+                return self.storage.save("_all", array).then(function() {
+                    self.lock = false;
+                });
+            });
         }).then(function() {
             return checkBuffer(self);
         });
