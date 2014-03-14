@@ -300,11 +300,7 @@ define([
                     delete object2._timestamp;
                     expect(array[0]).toEqual(object1);
                     expect(array[1]).toEqual(object2);
-
-
                 }).then(function() {
-
-
                     testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);
