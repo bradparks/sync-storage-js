@@ -1,11 +1,19 @@
-### Hands on : Trello ###
+### SyncDB ###
 
-Le but du hands-on est d'afficher un tableau de type Trello fonctionnant même en étant déconnecté.
+This library provides support for synchronizing several databases together. Databases can be either local (in the browser) or remote.
 
-* Le tableau comporte 4 colonnes : En attente, En cours, En recette, En production.
-* Les colonnes peuvent contenir des tickets comportant un titre et UN commentaire propre à chaque utilisateur.
-* Le commentaire de chaque utilisateur peut être modifié uniquement par l'utilisateur qui l'a créé.
-* Les utilisateurs doivent pouvoir voir les commentaires des autres utilisateurs.
+Main features provided :
+* easy synchronization
+* asynchronous interface
+* indexing and fast querying
+* simple querying
 
-Les méthodes à implémenter sont dans le fichier src/js/trello/Controller.js.
+Features to come :
+* support for remote CouchDB
+* support for remote MongoDB on MongoLabs
 
+What SyncDB does not and will not provide :
+* an abstraction layer to use a local database. Please use other library like localForage or jStorage.
+
+
+Development is still on early stage. Stay tuned.
