@@ -45,11 +45,12 @@ define([
             return key;
         }
 
-        var saveForce = function(self, resultObject, conflicts) {
+        var saveForce = function(self, resultObject) {
             var parsedRev = parseRev(resultObject._rev);
             var version = parsedRev.version;
             // TODO put lock on write
             return self.get({_id:resultObject._id}).then(function (lastObject) {
+                var promises = [];
                 var shouldStore = !lastObject;
                 if (!shouldStore) {
                     var lastRev = parseRev(lastObject._rev);
@@ -68,15 +69,28 @@ define([
                                 delete lastObject._synced;
                                 self.storageVersion.save(getCombinedKey(lastObject), lastObject);
                             }
+                        } else {
+                            var cleanObject = function(object) {
+                                object._timstamp = new Date().getTime();
+                                delete object._synced;
+                                delete object._conflict;
+                                self.storageVersion.save(getCombinedKey(object), object);
+                            }
+                            console.log("conflict solved with onConflict function : "+JSON.stringify(result));
+                            cleanObject(lastObject);
+                            cleanObject(resultObject);
+                            promises.push(self.save(result));
                         }
                     }
                 }
                 self.storageVersion.save(getCombinedKey(resultObject), resultObject);
                 if (shouldStore) {
                     console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
-                    return self.storage.save(resultObject._id, resultObject);
+                    promises.push(self.storage.save(resultObject._id, resultObject));
                 }
-                return resultObject;
+                return Q.all(promises).then(function() {
+                    return resultObject;
+                });
             });
         }
 
@@ -90,17 +104,15 @@ define([
                 resultObject._id = now + self.random.nextAlpha(10);
             }
             var version = 1;
-            var conflicts;
             if (resultObject._rev) {
                 var version = parseRev(resultObject._rev).version;
                 version++;
-                conflicts = resultObject._rev;
             }
             resultObject._rev = version + "-" + self.random.nextAlpha(30);
             resultObject._timestamp = now;
             delete resultObject._synced;
             delete resultObject._conflict;
-            return saveForce(self, resultObject, conflicts);
+            return saveForce(self, resultObject);
         };
 
         // query should contain an _id field
