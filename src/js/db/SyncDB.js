@@ -62,7 +62,7 @@ define([
                             var loseVersion = !shouldStore ? resultObject : lastObject;
                             loseVersion._conflict = true;
                             var logObject = {_id:loseVersion._id, _rev:loseVersion._rev};
-                            console.warn(JSON.stringify(logObject)+" marked as conflicted");
+                            console.warn(JSON.stringify(logObject)+" marked as conflicted on "+self.name);
                             if (loseVersion == lastObject) {
                                 lastObject._timestamp = new Date().getTime();
                                 delete lastObject._synced;
@@ -140,6 +140,14 @@ define([
             console.log("query="+JSON.stringify(query));
             return this.storage.query(query).then(function(result) {
                 console.log("result query="+JSON.stringify(result));
+                return result;
+            });
+        }
+
+        classe.prototype.queryHistory = function(query) {
+            console.log("query history="+JSON.stringify(query));
+            return this.storageVersion.query(query).then(function(result) {
+                console.log("result query history="+JSON.stringify(result));
                 return result;
             });
         }
