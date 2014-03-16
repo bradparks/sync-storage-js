@@ -104,8 +104,23 @@ define([
     }
 
     classe.prototype.destroy = function() {
+        if (!this.indexStorage) {
+            // case of internal storage for IndexStorage
+            var defer = Q.defer();
+            defer.resolve();
+            return defer.promise;
+        }
         var self = this;
-        return this.storage.destroy().then(function() {
+        return self.waitIndex().then(function() {
+            return self.indexStorage.getAll();
+        }).then(function(result) {
+            console.log("result=");
+            console.log(result);
+            return Q.all(_.map(result, function(value, key) {
+                console.log("deleting "+key);
+                return self.del(key);
+            }));
+        }).then(function() {
             if (self.indexStorage) {
                 return self.indexStorage.destroy();
             }

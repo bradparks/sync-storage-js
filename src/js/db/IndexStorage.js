@@ -75,7 +75,7 @@ define([
 
     classe.prototype.destroy = function() {
         var self = this;
-        return this.storage.destroy().then(function() {
+        return this.storage.del("_all").then(function() {
             init(self);
         });
     }
