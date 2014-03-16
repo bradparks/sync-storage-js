@@ -3,12 +3,10 @@ define([
     "underscore"
 ], function (Q, _) {
     var classe = function () {
-        this.keys = {};
     }
 
     classe.prototype.save = function (key, object) {
         var defer = Q.defer();
-        this.keys[key] = 1;
         localStorage.setItem(key, JSON.stringify(object));
         defer.resolve(object);
         return defer.promise;
@@ -24,16 +22,16 @@ define([
 
     classe.prototype.del = function (key) {
         var defer = Q.defer();
-        delete this.keys[key];
-        defer.resolve(this.save(key, undefined));
+        localStorage.removeItem(key);
+        defer.resolve();
         return defer.promise;
     }
 
     classe.prototype.destroy = function() {
-        var self = this;
-        return Q.all(_.map(self.keys, function(key) {
-            return self.del(key);
-        }));
+        var defer = Q.defer();
+        localStorage.clear();
+        defer.resolve();
+        return defer.promise;
     }
 
     classe.isSupported = function() {
