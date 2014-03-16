@@ -1,10 +1,10 @@
 {
   "name": "SyncStorage",
   "version": "0.0.1",
-  "description": "",
-  "repository": "",
-  "author": "",
-  "license": "BSD",
+  "description": "tool for syncing local data with remote database",
+  "repository": "http://github.com/remy-auricoste/sync-storage-js",
+  "author": "Rémy Auricoste (remy.auricoste@gmail.com)",
+  "license": "GNU GPL version 3",
   "devDependencies": {
     "grunt-contrib-requirejs": "~0.4.3",
     "karma": "~0.12.0",
