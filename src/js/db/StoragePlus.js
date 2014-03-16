@@ -1,10 +1,9 @@
 define([
     "q",
-    "jquery",
     "utils/StringUtils",
     "db/IndexStorage",
     "underscore"
-], function(Q, $, StringUtils, IndexStorage, _) {
+], function(Q, StringUtils, IndexStorage, _) {
     var classe = function(name, basicStorage, indexStorage) {
         this.name = name;
         this.storage = basicStorage;
@@ -62,7 +61,7 @@ define([
                 rows[key] = array;
                 totalKeys++;
             }
-            array.push($.extend({}, value));
+            array.push(_.extend({}, value));
             total++;
         }
         return this.indexStorage.getAll().then(function(indexes) {

@@ -2,15 +2,12 @@
 require.config({
     baseUrl:"js",
     paths: {
-        "jquery":"../lib/jquery/jquery",
         "PouchDB":"../lib/PouchDb/PouchDb",
-        "bootstrap":"../lib/bootstrap/js/bootstrap.min",
         "q":"../lib/q/q",
         "underscore":"../lib/underscore/underscore.min",
         "localForage":"../lib/localForage/localForage.min"
     },
     shim: {
-        "bootstrap":["jquery"],
         "underscore": {
             // exports underscore as a global variable named '_'
             exports:"_"

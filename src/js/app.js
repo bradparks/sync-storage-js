@@ -37,7 +37,7 @@ define([
                     console.log("elapsed time = "+(endQuery - startQuery));
                     console.log(result);
                 }).then(function() {
-                    db.destroy();
+                    //db.destroy();
                 });
             });
 

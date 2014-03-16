@@ -1,5 +1,4 @@
 define([
-    "jquery",
     "utils/StringUtils",
     "underscore",
     "q",
@@ -7,7 +6,7 @@ define([
     "basicStorage/InMemoryStorage",
     "Random"
 ],
-    function ($, StringUtils, _, Q, StoragePlus, Storage, Random) {
+    function (StringUtils, _, Q, StoragePlus, Storage, Random) {
         var classe = function (url, simpleStorage) {
             var self = this;
             this.name = url;
@@ -98,7 +97,7 @@ define([
         // if object is a new object, object should not contain a _rev field
         classe.prototype.save = function (object) {
             var self = this;
-            var resultObject = $.extend({}, object);
+            var resultObject = _.extend({}, object);
             var now = new Date().getTime();
             if (!resultObject._id) {
                 resultObject._id = now + self.random.nextAlpha(10);

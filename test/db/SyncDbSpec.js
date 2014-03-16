@@ -1,11 +1,10 @@
 define([
     "db/SyncDB",
-    "jquery",
     "q",
     "underscore",
     "utils/StringUtils",
 ],
-    function (SyncDB, $, Q, _, StringUtils) {
+    function (SyncDB, Q, _, StringUtils) {
         describe('SyncDB', function () {
             var db;
             var remoteDb;
@@ -88,7 +87,7 @@ define([
             it('finds an object from its _id or its _id and _rev (2 versions)', function () {
                 db.save(object)
                     .then(function (object) {
-                        var object2 = $.extend({}, object);
+                        var object2 = _.extend({}, object);
                         object2.value = "test2";
                         db.save(object2).then(function (object2) {
                             expect(object).not.toEqual(object2);
@@ -124,7 +123,7 @@ define([
             });
 
             it('saving an object should not modify it', function () {
-                var copy = $.extend({}, object);
+                var copy = _.extend({}, object);
                 db.save(object)
                 .then(function (result) {
                     expect(object).toEqual(copy);

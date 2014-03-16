@@ -1,11 +1,10 @@
 define([
     "db/SyncDB",
-    "jquery",
     "q",
     "underscore",
     "utils/StringUtils",
 ],
-    function (SyncDB, $, Q, _, StringUtils) {
+    function (SyncDB, Q, _, StringUtils) {
         describe('SyncDB', function () {
             var db;
             var remoteDb;

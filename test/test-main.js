@@ -11,7 +11,6 @@ requirejs.config({
 
     paths: {
         'PouchDB': '../lib/PouchDb/PouchDb',
-        'jquery': '../lib/jquery/jquery',
         'underscore': '../lib/underscore/underscore.min',
         'q': '../lib/q/q',
         "localForage":"../lib/localForage/localForage.min"
