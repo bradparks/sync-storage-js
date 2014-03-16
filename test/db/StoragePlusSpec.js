@@ -9,7 +9,7 @@ define([
             var object;
             var asyncTest = function () {
                 return testOk;
-            }
+            };
 
             beforeEach(function () {
                 storage = new StoragePlus("storage", new Storage());
@@ -29,5 +29,5 @@ define([
                 });
                 waitsFor(asyncTest);
             });
-        })
+        });
     });

@@ -21,20 +21,20 @@ define([
                 return _.map(result, function(object) {
                     return db.save(object);
                 });
-            }
+            };
             var request = function(object) {
                 return {_id:object._id};
-            }
+            };
             var asyncTest = function () {
                 return testOk;
-            }
+            };
             var log = function (object) {
                 console.error(object);
-            }
+            };
 
             var stringify = function(object) {
                 console.log(JSON.stringify(object));
-            }
+            };
 
             beforeEach(function () {
                 console.log("");

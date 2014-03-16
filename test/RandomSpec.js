@@ -30,5 +30,5 @@ function (Random) {
                 expect(random.nextNumber() >= 0).toBe(true);
             }
         });
-    })
+    });
 });

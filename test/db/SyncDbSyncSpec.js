@@ -21,20 +21,20 @@ define([
                 return _.map(result, function(object) {
                     return db.save(object);
                 });
-            }
+            };
             var request = function(object) {
                 return {_id:object._id};
-            }
+            };
             var asyncTest = function () {
                 return testOk;
-            }
+            };
             var log = function (object) {
                 console.error(object);
-            }
+            };
 
             var stringify = function(object) {
                 console.log(JSON.stringify(object));
-            }
+            };
 
             beforeEach(function () {
                 console.log("");
@@ -175,7 +175,7 @@ define([
             it('sync with other syncDb (onConflict method)', function() {
                 db.onConflict = function(doc1, doc2) {
                     return doc1._rev > doc2._rev ? doc1 : doc2;
-                }
+                };
                  // save 1 object
                 Q.all(create(db, 1)).then(function(result) {
                     object = result[0];

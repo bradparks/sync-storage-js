@@ -9,7 +9,7 @@ define([
             var object;
             var asyncTest = function () {
                 return testOk;
-            }
+            };
 
             beforeEach(function () {
                 storage = new IndexStorage(new Storage());
@@ -24,10 +24,10 @@ define([
                 .then(function(result) {
                     return storage.getAll();
                 }).then(function(result) {
-                    expect(result["test"]).toEqual("value");
+                    expect(result.test).toEqual("value");
                     testOk = true;
                 });
                 waitsFor(asyncTest);
             });
-        })
+        });
     });
