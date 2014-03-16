@@ -17,7 +17,6 @@ logs
 results
 
 lib/*
-!lib/PouchDb/
 *.iml
 bower_components
 .idea
