@@ -1,6 +1,6 @@
 {
   "name": "SyncDB",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "homepage": "https://github.com/remy-auricoste/SyncDB",
   "description": "db that sync !",
   "main": "src/js/main.js",

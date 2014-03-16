@@ -1,6 +1,6 @@
 {
   "name": "SyncStorage",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "tool for syncing local data with remote database",
   "repository": "http://github.com/remy-auricoste/sync-storage-js",
   "author": "Rémy Auricoste (remy.auricoste@gmail.com)",
