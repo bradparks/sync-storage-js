@@ -30,16 +30,30 @@ module.exports = function(grunt) {
     watch: {
       files: ['<%= karma.files %>'],
       tasks: ['karma']
-    }
+    },
+    bower: {
+        install: {
+          options: {
+            targetDir: './lib',
+            layout: 'byType',
+            install: true,
+            verbose: false,
+            cleanTargetDir: false,
+            cleanBowerDir: false,
+            bowerOptions: {}
+          }
+        }
+      }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-bower-task');
 
   grunt.registerTask('test', ['karma']);
 
-  grunt.registerTask('default', ['test', 'concat', 'uglify']);
+  grunt.registerTask('default', ['test', 'bower:install', 'concat', 'uglify']);
 
 };
