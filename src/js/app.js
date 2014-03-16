@@ -1,5 +1,5 @@
 define([
-"db/SyncStorage",
+"SyncStorage",
 "basicStorage/LocalForageBridge",
 "basicStorage/FacadeStorage",
 "utils/FunctionUtils",

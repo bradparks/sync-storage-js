@@ -1,5 +1,5 @@
 define([
-    "db/SyncStorage",
+    "SyncStorage",
     "q",
     "underscore",
     "utils/StringUtils",
