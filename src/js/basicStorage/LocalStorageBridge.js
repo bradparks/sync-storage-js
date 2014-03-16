@@ -31,7 +31,7 @@ define([
 
     classe.prototype.destroy = function() {
         var self = this;
-        Q.all(_.map(keys, function(key) {
+        return Q.all(_.map(self.keys, function(key) {
             return self.del(key);
         }));
     }
