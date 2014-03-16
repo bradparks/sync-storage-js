@@ -1,19 +1,26 @@
 define([
+"q",
 "underscore",
 "utils/FunctionUtils"
-], function(_, FunctionUtils) {
+], function(Q, _, FunctionUtils) {
     var classe = function(storage) {
         this.storage = storage;
         init(this);
     }
 
+    var emptyPromise = function() {
+        var defer = Q.defer();
+        defer.resolve();
+        return defer.promise;
+    }
+
     var checkBuffer = function(self) {
         if (_.size(self.buffer) == 0) {
-            return;
+            return emptyPromise();
         }
         return self.getAll().then(function(result) {
             if (_.size(self.buffer) == 0) {
-                return;
+                return emptyPromise();
             }
             FunctionUtils.onCondition(function() {
                 var pass = false;

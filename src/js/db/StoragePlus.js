@@ -96,6 +96,10 @@ define([
     classe.prototype.waitIndex = function() {
         if (this.indexStorage) {
             return this.indexStorage.waitIndex();
+        } else {
+            var defer = Q.defer();
+            defer.resolve();
+            return defer.promise;
         }
     }
 
