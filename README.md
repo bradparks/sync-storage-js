@@ -1,4 +1,4 @@
-### SyncDB ###
+### Sync Storage JS ###
 
 This library provides support for synchronizing several databases together. Databases can be either local (in the browser) or remote.
 
