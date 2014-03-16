@@ -1,11 +1,11 @@
 define([
-    "db/SyncDB",
+    "db/SyncStorage",
     "q",
     "underscore",
     "utils/StringUtils",
 ],
-    function (SyncDB, Q, _, StringUtils) {
-        describe('SyncDB', function () {
+    function (SyncStorage, Q, _, StringUtils) {
+        describe('SyncStorage', function () {
             var db;
             var remoteDb;
             var object;
@@ -40,8 +40,8 @@ define([
                 console.log("");
                 console.log("starting test...");
                 var simpleStorage = null;
-                db = new SyncDB("local", simpleStorage);
-                remoteDb = new SyncDB("remote", simpleStorage);
+                db = new SyncStorage("local", simpleStorage);
+                remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
             });

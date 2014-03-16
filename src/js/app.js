@@ -1,18 +1,18 @@
 define([
-"db/SyncDB",
+"db/SyncStorage",
 "basicStorage/LocalForageBridge",
 "basicStorage/FacadeStorage",
 "utils/FunctionUtils",
 "localForage",
 "q"
-], function(SyncDB, LocalForageBridge, FacadeStorage, FunctionUtils, localForage, Q) {
+], function(SyncStorage, LocalForageBridge, FacadeStorage, FunctionUtils, localForage, Q) {
     return function() {
         // hack to fix localForage init bug
         // https://github.com/mozilla/localForage/issues/65
         FunctionUtils.onCondition(function() {
             return localForage.driver ? true : false;
         }, function() {
-            var db = new SyncDB("test", new FacadeStorage());
+            var db = new SyncStorage("test", new FacadeStorage());
             var input = new Date().getTime();
             var promises = [];
             for (var i=0;i<5;i++) {

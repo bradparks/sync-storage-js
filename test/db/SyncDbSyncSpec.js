@@ -1,11 +1,11 @@
 define([
-    "db/SyncDB",
+    "db/SyncStorage",
     "q",
     "underscore",
     "utils/StringUtils",
 ],
-    function (SyncDB, Q, _, StringUtils) {
-        describe('SyncDB', function () {
+    function (SyncStorage, Q, _, StringUtils) {
+        describe('SyncStorage', function () {
             var db;
             var remoteDb;
             var object;
@@ -40,13 +40,13 @@ define([
                 console.log("");
                 console.log("starting test...");
                 var simpleStorage = null;
-                db = new SyncDB("local", simpleStorage);
-                remoteDb = new SyncDB("remote", simpleStorage);
+                db = new SyncStorage("local", simpleStorage);
+                remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
             });
 
-            it('sync with other syncDb', function() {
+            it('sync with other SyncStorage', function() {
 
                 db.save(object).then(function(result) {
                     object = result;
@@ -64,7 +64,7 @@ define([
                 waitsFor(asyncTest);
             });
 
-            it('sync with other syncDb (both ways, several objects)', function() {
+            it('sync with other SyncStorage (both ways, several objects)', function() {
                 // save 4 objects
                 Q.all(create(db, 4)).then(function(result) {
                     // change the value of the 1st object
@@ -95,7 +95,7 @@ define([
                 waitsFor(asyncTest);
             });
 
-            it('sync with other syncDb (conflicts)', function() {
+            it('sync with other SyncStorage (conflicts)', function() {
                 var object1;
                 var object2;
                  // save 1 object
@@ -172,7 +172,7 @@ define([
                 waitsFor(asyncTest);
             });
 
-            it('sync with other syncDb (onConflict method)', function() {
+            it('sync with other SyncStorage (onConflict method)', function() {
                 db.onConflict = function(doc1, doc2) {
                     return doc1._rev > doc2._rev ? doc1 : doc2;
                 };
