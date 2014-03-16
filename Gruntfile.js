@@ -21,17 +21,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js'],
-      options: {
-        // options here to override JSHint defaults
-        globals: {
-          console: true,
-          module: true,
-          document: true
-        }
-      }
-    },
     karma: {
       unit: {
         configFile: 'karma.conf.js',
@@ -39,18 +28,17 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files: ['<%= jshint.files %>'],
-      tasks: ['jshint', 'karma']
+      files: ['<%= karma.files %>'],
+      tasks: ['karma']
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-karma');
 
-  grunt.registerTask('test', ['jshint', 'karma']);
+  grunt.registerTask('test', ['karma']);
 
   grunt.registerTask('default', ['test', 'concat', 'uglify']);
 
