@@ -26,6 +26,7 @@
   "dependencies": {
     "underscore": "~1.6.0",
     "q": "~1.0.0",
+    "localforage": "~0.1.0",
     "requirejs": "~2.1.11"
   }
 }

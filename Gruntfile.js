@@ -52,8 +52,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-bower-task');
 
-  grunt.registerTask('test', ['karma']);
+  grunt.registerTask('test', ['bower:install', 'karma']);
 
-  grunt.registerTask('default', ['test', 'bower:install', 'concat', 'uglify']);
+  grunt.registerTask('default', ['test', 'concat', 'uglify']);
 
 };
