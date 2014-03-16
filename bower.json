@@ -15,7 +15,7 @@
     "Rémy Auricoste"
   ],
   "license": "GNU GPL version 3",
-  "private": true,
+  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
