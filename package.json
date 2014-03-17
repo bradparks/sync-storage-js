@@ -6,13 +6,7 @@
   "author": "Rémy Auricoste (remy.auricoste@gmail.com)",
   "license": "GNU GPL version 3",
   "devDependencies": {
-    "grunt-contrib-requirejs": "~0.4.3",
     "karma": "~0.12.0",
-    "grunt-karma": "~0.8.2",
-    "grunt-contrib-watch": "~0.6.0",
-    "grunt-contrib-uglify": "~0.4.0",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-bower-task": "~0.3.4"
   },
   "dependencies": {
     "express": "~3.4.0"
