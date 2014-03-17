@@ -2,10 +2,9 @@
 require.config({
     baseUrl:"js",
     paths: {
-        "PouchDB":"../../lib/PouchDb/PouchDb",
-        "q":"../../lib/q/q",
-        "underscore":"../../lib/underscore/underscore",
-        "localForage":"../../lib/localForage/localForage.min"
+        "q":"../../bower_components/q/q",
+        "underscore":"../../bower_components/underscore/underscore",
+        "localForage":"../../bower_components/localForage/localForage.min"
     },
     shim: {
         "underscore": {
