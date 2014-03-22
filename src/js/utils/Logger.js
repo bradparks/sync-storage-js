@@ -24,6 +24,9 @@ define([
             var date = new Date();
             var header = formatInt(date.getHours())+":"+formatInt(date.getMinutes())+":"+formatInt(date.getSeconds());
             header += ", " + self.name + ", " + level.name + " : ";
+            if (typeof message == "object") {
+                message = JSON.stringify(message);
+            }
             console.log(header + message);
         }
     }
