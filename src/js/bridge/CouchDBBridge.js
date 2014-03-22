@@ -19,8 +19,11 @@ define([
 
     classe.prototype.create = function() {
         var self = this;
-        return new Request("put", self.url).call().fail(function(req) {
+        return new Request("put", self.url).call().then(function() {
+            logger.info("creating database "+self.url);
+        }).fail(function(req) {
             if (req.statusCode != 412) {
+                logger.error("error when creating database "+self.url);
                 return req;
             } else {
                 logger.warn(self.url+" already exists");
@@ -94,7 +97,11 @@ define([
     }
 
     classe.prototype.destroy = function() {
-        return new Request("delete", this.url).call();
+        var self = this;
+        return new Request("delete", self.url).call().then(function(result) {
+            logger.info("destroying database "+self.url);
+            logger.debug(result);
+        });
     }
 
     return classe;
