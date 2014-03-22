@@ -4,9 +4,10 @@ define([
     "q",
     "db/StoragePlus",
     "basicStorage/InMemoryStorage",
-    "Random"
+    "Random",
+    "utils/Logger"
 ],
-    function (StringUtils, _, Q, StoragePlus, Storage, Random) {
+    function (StringUtils, _, Q, StoragePlus, Storage, Random, Logger) {
         var classe = function (url, simpleStorage) {
             var self = this;
             this.name = url;
@@ -17,11 +18,13 @@ define([
             this.storage = new StoragePlus(url, simpleStorage);
             this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
             this.onConflict = function(doc1, doc2) {
-                console.error("Conflict detected on "+self.name+". This method should be overriden. doc1 and doc2 in conflicts :");
-                console.error(doc1);
-                console.error(doc2);
+                logger.error("Conflict detected on "+self.name+". This method should be overriden. doc1 and doc2 in conflicts :");
+                logger.error(doc1);
+                logger.error(doc2);
             }
         };
+
+        var logger = new Logger("SyncStorage");
 
         classe.prototype.random = new Random();
 
@@ -75,7 +78,7 @@ define([
                                 delete object._conflict;
                                 self.storageVersion.save(getCombinedKey(object), object);
                             }
-                            console.log("conflict solved with onConflict function : "+JSON.stringify(result));
+                            logger.info("conflict solved with onConflict function : "+JSON.stringify(result));
                             cleanObject(lastObject);
                             cleanObject(resultObject);
                             promises.push(self.save(result));
@@ -84,7 +87,7 @@ define([
                 }
                 self.storageVersion.save(getCombinedKey(resultObject), resultObject);
                 if (shouldStore) {
-                    console.log("store object on "+self.name+" : "+JSON.stringify(resultObject));
+                    logger.info("store object on "+self.name+" : "+JSON.stringify(resultObject));
                     promises.push(self.storage.save(resultObject._id, resultObject));
                 }
                 return Q.all(promises).then(function() {
@@ -148,17 +151,17 @@ define([
          query.endkey : higher bound for KEY (optional)
          */
         classe.prototype.query = function(query) {
-            console.log("query="+JSON.stringify(query));
+            logger.info("query="+JSON.stringify(query));
             return this.storage.query(query).then(function(result) {
-                console.log("result query="+JSON.stringify(result));
+                logger.info("result query="+JSON.stringify(result));
                 return result;
             });
         }
 
         classe.prototype.queryHistory = function(query) {
-            console.log("query history="+JSON.stringify(query));
+            logger.info("query history="+JSON.stringify(query));
             return this.storageVersion.query(query).then(function(result) {
-                console.log("result query history="+JSON.stringify(result));
+                logger.info("result query history="+JSON.stringify(result));
                 return result;
             });
         }
@@ -170,7 +173,7 @@ define([
             ).then(function(result) {
                 var lastRep = result ? result._timestamp : undefined;
                 endRep = new Date().getTime();
-                console.log("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
+                logger.info("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
                 return self.storageVersion.query({
                     mapFunction:function(emit, doc) {
                         if (!doc._synced) {
@@ -185,7 +188,7 @@ define([
                 if (result.total_rows === 0) {
                     return 0;
                 }
-                //console.log(JSON.stringify(result, null, 2));
+                logger.debug(JSON.stringify(result, null, 2));
                 var promises = [];
                 for (var key in result.rows) {
                     // docs attached to a timestamp
@@ -208,11 +211,11 @@ define([
                 return self.storage.save(repKey, {
                     _timestamp:endRep
                 }).then(function() {
-                    console.log("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(result));
+                    logger.info("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(result));
                     return result;
                 });
             }).fail(function(err) {
-                console.log("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(err));
+                logger.info("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(err));
                 // rollback rep
                 return {
                     error:true,

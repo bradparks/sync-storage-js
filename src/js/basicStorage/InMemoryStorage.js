@@ -1,9 +1,12 @@
 define([
     "q",
-    "underscore"
-], function (Q, _) {
+    "underscore",
+    "utils/Logger"
+], function (Q, _, Logger) {
     var classe = function () {
     }
+
+    var logger = new Logger("InMemoryStorage");
 
     classe.prototype.save = function (key, object) {
         var defer = Q.defer();
@@ -31,7 +34,7 @@ define([
     classe.prototype.destroy = function() {
         var defer = Q.defer();
         _.each(this, function(value, key) {
-            console.log("delete "+key);
+            logger.debug("delete "+key);
             delete this[key];
         });
         defer.resolve();

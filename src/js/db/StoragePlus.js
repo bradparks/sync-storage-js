@@ -2,8 +2,9 @@ define([
     "q",
     "utils/StringUtils",
     "db/IndexStorage",
-    "underscore"
-], function(Q, StringUtils, IndexStorage, _) {
+    "underscore",
+    "utils/Logger"
+], function(Q, StringUtils, IndexStorage, _, Logger) {
     var classe = function(name, basicStorage, indexStorage) {
         this.name = name;
         this.storage = basicStorage;
@@ -11,6 +12,8 @@ define([
             this.indexStorage = new IndexStorage(new classe("__index__"+name, this.storage, true));
         }
     }
+
+    var logger = new Logger("StoragePlus");
 
     var getPrefix = function(self) {
         return self.name + "/";
@@ -113,10 +116,10 @@ define([
         return self.waitIndex().then(function() {
             return self.indexStorage.getAll();
         }).then(function(result) {
-            console.log("result=");
-            console.log(result);
+            logger.info("result=");
+            logger.info(result);
             return Q.all(_.map(result, function(value, key) {
-                console.log("deleting "+key);
+                logger.info("deleting "+key);
                 return self.del(key);
             }));
         }).then(function() {

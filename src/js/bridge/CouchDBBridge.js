@@ -1,12 +1,15 @@
 define([
-"utils/Request"
-], function(Request) {
+"utils/Request",
+"utils/Logger"
+], function(Request, Logger) {
     var classe = function(host, collectionName) {
         var self = this;
         this.host = host;
         this.name = collectionName;
         this.url = host + "/" + this.name + "/";
     }
+
+    var logger = new Logger("CouchDBBridge");
 
     classe.prototype.exists = function() {
         return new Request("get", this.url).call().then(function(result) {
@@ -52,7 +55,7 @@ define([
                     storedObject._rev = couchObject._rev;
                 }
             }
-            console.log(storedObject);
+            logger.info(storedObject);
             return new Request("put", self.url+transformKey(key), JSON.stringify(storedObject)).call().then(function() {
                 return object;
             });

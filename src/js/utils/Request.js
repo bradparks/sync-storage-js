@@ -1,15 +1,18 @@
 define([
 "jquery",
-"q"
-], function($, Q) {
+"q",
+"utils/Logger"
+], function($, Q, Logger) {
     var classe = function(method, url, data) {
         this.method = method;
         this.url = url;
         this.data = data;
     }
 
+    var logger = new Logger("Request");
+
     classe.prototype.call = function() {
-        console.log(this.method.toUpperCase() + " " + this.url);
+        logger.debug(this.method.toUpperCase() + " " + this.url);
         var self = this;
         var defer = Q.defer();
         var req = {
@@ -20,7 +23,7 @@ define([
         if (!req.data) {
             delete req.data;
         } else {
-            console.log(req.data);
+            logger.debug(req.data);
         }
         $.ajax(req).done(function(result, status, xhr) {
             defer.resolve({

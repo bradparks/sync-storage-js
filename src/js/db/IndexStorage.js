@@ -1,8 +1,9 @@
 define([
 "q",
 "underscore",
-"utils/FunctionUtils"
-], function(Q, _, FunctionUtils) {
+"utils/FunctionUtils",
+"utils/Logger"
+], function(Q, _, FunctionUtils, Logger) {
     var classe = function(storage) {
         this.storage = storage;
         init(this);
@@ -13,6 +14,8 @@ define([
         defer.resolve();
         return defer.promise;
     }
+
+    var logger = new Logger("IndexStorage");
 
     var checkBuffer = function(self) {
         if (_.size(self.buffer) == 0) {
@@ -34,15 +37,15 @@ define([
                 if (!array) {
                     array = {};
                 }
-                console.log("adding buffer...")
+                logger.debug("adding buffer...")
                 for (var key in self.buffer) {
                     var value = self.buffer[key];
-                    //console.log("adding key "+key+", value="+JSON.stringify(value));
+                    logger.debug("adding key "+key+", value="+JSON.stringify(value));
                     array[key] = value;
                 }
-                //console.log("saving array="+JSON.stringify(array));
+                logger.debug("saving array="+JSON.stringify(array));
                 self.buffer = {};
-                //console.log("save _all="+JSON.stringify(array));
+                logger.debug("save _all="+JSON.stringify(array));
                 return self.storage.save("_all", array).then(function() {
                     self.lock = false;
                 });
@@ -59,7 +62,7 @@ define([
 
     classe.prototype.getAll = function() {
         return this.storage.get("_all").then(function(result) {
-            //console.log("result _all="+JSON.stringify(result));
+            logger.debug("result _all="+JSON.stringify(result));
             return result ? result : {};
         });
     }
