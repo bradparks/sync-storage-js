@@ -2,10 +2,6 @@ define([
 ], function() {
     var classe = function(name, level) {
         this.name = name;
-        this.level = this.INFO;
-        if (this.root) {
-            this.level = this.root.level;
-        }
         if (level !== undefined) {
             this.level = level;
         }
@@ -19,8 +15,16 @@ define([
         return result;
     }
 
+    var getLevel = function(self) {
+        if (self.level !== undefined) {
+            return self.level;
+        } else {
+            return self.root.level;
+        }
+    }
+
     var log = function(self, level, message) {
-        if (level.priority >= self.level.priority) {
+        if (level.priority >= getLevel(self).priority) {
             var date = new Date();
             var header = formatInt(date.getHours())+":"+formatInt(date.getMinutes())+":"+formatInt(date.getSeconds());
             header += ", " + self.name + ", " + level.name + " : ";
