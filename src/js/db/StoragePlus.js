@@ -116,10 +116,10 @@ define([
         return self.waitIndex().then(function() {
             return self.indexStorage.getAll();
         }).then(function(result) {
-            logger.info("result=");
-            logger.info(result);
+            logger.debug("destroy result=");
+            logger.debug(result);
             return Q.all(_.map(result, function(value, key) {
-                logger.info("deleting "+key);
+                logger.debug("deleting "+key);
                 return self.del(key);
             }));
         }).then(function() {
