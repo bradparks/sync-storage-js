@@ -24,7 +24,7 @@ define([
             var date = new Date();
             var header = formatInt(date.getHours())+":"+formatInt(date.getMinutes())+":"+formatInt(date.getSeconds());
             header += ", " + self.name + ", " + level.name + " : ";
-            logger.info(header + message);
+            console.log(header + message);
         }
     }
 
