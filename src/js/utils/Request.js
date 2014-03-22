@@ -9,7 +9,7 @@ define([
     }
 
     classe.prototype.call = function() {
-        console.log("calling "+this.url);
+        console.log(this.method.toUpperCase() + " " + this.url);
         var self = this;
         var defer = Q.defer();
         var req = {
@@ -19,6 +19,8 @@ define([
         };
         if (!req.data) {
             delete req.data;
+        } else {
+            console.log(req.data);
         }
         $.ajax(req).done(function(result, status, xhr) {
             defer.resolve({
