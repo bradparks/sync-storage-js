@@ -45,7 +45,10 @@ define([
     }
 
     var transformKey = function(key) {
-        var result = key.toLowerCase().replace("/", "$");
+        var result = key.toLowerCase();
+        while (result.replace("/", "$") != result) {
+            result = result.replace("/", "$");
+        }
         return result;
     }
 
@@ -54,6 +57,7 @@ define([
     }
 
     classe.prototype.save = function(key, object) {
+        logger.debug("saving key "+key);
         var self = this;
         return getCouchObject(self, key).then(function(result) {
             var storedObject = {
