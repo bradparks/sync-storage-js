@@ -26,7 +26,7 @@ define([
     var log = function(self, level, message) {
         if (level.priority >= getLevel(self).priority) {
             var date = new Date();
-            var header = formatInt(date.getHours())+":"+formatInt(date.getMinutes())+":"+formatInt(date.getSeconds());
+            var header = formatInt(date.getHours(), 2)+":"+formatInt(date.getMinutes(), 2)+":"+formatInt(date.getSeconds(), 2);
             header += ", " + self.name + ", " + level.name + " : ";
             if (typeof message == "object") {
                 message = JSON.stringify(message);
