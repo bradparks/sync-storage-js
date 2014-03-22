@@ -18,9 +18,12 @@ define([
     }
 
     classe.prototype.create = function() {
-        return new Request("put", this.url).call().fail(function(req) {
+        var self = this;
+        return new Request("put", self.url).call().fail(function(req) {
             if (req.statusCode != 412) {
                 return req;
+            } else {
+                logger.warn(self.url+" already exists");
             }
         })
     }
