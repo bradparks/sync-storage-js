@@ -18,7 +18,11 @@ define([
     }
 
     classe.prototype.create = function() {
-        return new Request("put", this.url).call();
+        return new Request("put", this.url).call().fail(function(req) {
+            if (req.statusCode != 412) {
+                return req;
+            }
+        })
     }
 
     classe.prototype.isSupported = function() {
