@@ -8,6 +8,12 @@ define([
 
     var logger = new Logger("InMemoryStorage");
 
+    classe.prototype.create = function() {
+        var defer = Q.defer();
+        defer.resolve();
+        return defer.promise;
+    }
+
     classe.prototype.save = function (key, object) {
         var defer = Q.defer();
         this[key] = JSON.stringify(object);
