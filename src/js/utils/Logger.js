@@ -37,9 +37,12 @@ define([
         };
         classe.prototype[levelName] = level;
         classe[levelName] = level;
-        classe.prototype[levelName.toLowerCase()] = function(message) {
-            log(this, level, message);
-        }
+
+        classe.prototype[levelName.toLowerCase()] = function(level) {
+            return function(message) {
+                log(this, level, message);
+            }
+        }(level);
     }
 
     classe.prototype.debug = function(message) {
