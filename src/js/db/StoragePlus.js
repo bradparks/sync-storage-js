@@ -24,9 +24,12 @@ define([
     }
 
     classe.prototype.save = function(key, object) {
+        logger.debug("saving key "+key);
         var newKey = getNewKey(this, key);
         if (this.indexStorage) {
-            this.indexStorage.addIndexKey(key, object);
+            this.indexStorage.addIndexKey(key, object).fail(function() {
+                logger.error("impossible to add index "+key);
+            });
         }
         return this.storage.save(newKey, object);
     };

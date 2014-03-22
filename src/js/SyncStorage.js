@@ -47,6 +47,13 @@ define([
             return key;
         }
 
+        var saveStorage = function(self, object) {
+            self.storageVersion.save(getCombinedKey(object), object).fail(function(err) {
+                logger.error("error when saving in version storage : "+JSON.stringify(object));
+                logger.error("error: "+JSON.stringify(err));
+            });
+        }
+
         var saveForce = function(self, resultObject) {
             var parsedRev = parseRev(resultObject._rev);
             var version = parsedRev.version;
@@ -69,14 +76,14 @@ define([
                             if (loseVersion == lastObject) {
                                 lastObject._timestamp = new Date().getTime();
                                 delete lastObject._synced;
-                                self.storageVersion.save(getCombinedKey(lastObject), lastObject);
+                                saveStorage(self, lastObject);
                             }
                         } else {
                             var cleanObject = function(object) {
                                 object._timstamp = new Date().getTime();
                                 delete object._synced;
                                 delete object._conflict;
-                                self.storageVersion.save(getCombinedKey(object), object);
+                                saveStorage(self, object);
                             }
                             logger.info("conflict solved with onConflict function : "+JSON.stringify(result));
                             cleanObject(lastObject);
@@ -85,7 +92,7 @@ define([
                         }
                     }
                 }
-                self.storageVersion.save(getCombinedKey(resultObject), resultObject);
+                saveStorage(self, resultObject);
                 if (shouldStore) {
                     logger.info("store object on "+self.name+" : "+JSON.stringify(resultObject));
                     promises.push(self.storage.save(resultObject._id, resultObject));
