@@ -12,14 +12,17 @@ requirejs.config({
     paths: {
         'underscore': '../../bower_components/underscore/underscore',
         'q': '../../bower_components/q/q',
-        "localForage":"../../bower_components/localForage/localForage.min"
+        "localForage":"../../bower_components/localForage/localForage.min",
+        "jquery":"../../bower_components/jquery/dist/jquery"
     },
 
     shim: {
         'underscore': {
             exports: '_'
+        },
+        'jquery': {
+            exports: '$'
         }
-
     },
 
     // ask Require.js to load these files (all our tests)
