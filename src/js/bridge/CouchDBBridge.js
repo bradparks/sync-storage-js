@@ -55,7 +55,7 @@ define([
                     storedObject._rev = couchObject._rev;
                 }
             }
-            logger.info(storedObject);
+            logger.debug("saving at key "+key+" : "+JSON.stringify(storedObject));
             return new Request("put", self.url+transformKey(key), JSON.stringify(storedObject)).call().then(function() {
                 return object;
             });
