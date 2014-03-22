@@ -3,9 +3,15 @@ define([
     "q",
     "underscore",
     "utils/StringUtils",
+    "bridge/CouchDBBridge",
+    "utils/Logger",
+    "basicStorage/InMemoryStorage"
 ],
-    function (SyncStorage, Q, _, StringUtils) {
+    function (SyncStorage, Q, _, StringUtils, CouchDBBridge, Logger, InMemoryStorage) {
         describe('SyncStorage', function () {
+            var logger = new Logger("SyncDbSpec");
+            //logger.root.level = Logger.DEBUG;
+
             var db;
             var remoteDb;
             var object;
@@ -29,21 +35,38 @@ define([
                 return testOk;
             };
             var log = function (object) {
-                console.error(object);
+                logger.error(object);
             };
 
             var stringify = function(object) {
-                console.log(JSON.stringify(object));
+                logger.info(JSON.stringify(object));
+            };
+            var waitPromise = function(promise) {
+                var resolved = false;
+                promise.then(function() {
+                    resolved = true;
+                }).fail(function(err) {
+                    logger.error(err);
+                });
+                waitsFor(function() {
+                    return resolved;
+                });
             };
 
             beforeEach(function () {
-                console.log("");
-                console.log("starting test...");
-                var simpleStorage = null;
+                logger.info("");
+                logger.info("starting test...");
+                var simpleStorage = new CouchDBBridge("http://localhost:5984", "sync_test");
+                //simpleStorage = new InMemoryStorage();
                 db = new SyncStorage("local", simpleStorage);
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
+                waitPromise(
+                    simpleStorage.destroy().then(function() {
+                        return simpleStorage.create();
+                    })
+                );
             });
 
             it('stores an object and return an object with _id and _rev fields', function () {
@@ -61,8 +84,7 @@ define([
 
             it('finds an object from its _id or its _id and _rev', function () {
                 var object2;
-                db.save(object)
-                .then(function(result) {
+                db.save(object).then(function(result) {
                     object = result;
                     return db.get(result);
                 })
@@ -85,26 +107,26 @@ define([
             });
 
             it('finds an object from its _id or its _id and _rev (2 versions)', function () {
-                db.save(object)
-                    .then(function (object) {
-                        var object2 = _.extend({}, object);
-                        object2.value = "test2";
-                        db.save(object2).then(function (object2) {
-                            expect(object).not.toEqual(object2);
-                            Q.all([
-                                db.get(object2),
-                                db.get({_id: object._id}),
-                                db.get({_id: object._id, _rev: object._rev}),
-                                db.get({_id: object._id, _rev: object2._rev})
-                            ]).then(function(array) {
-                                expect(array[0]).toEqual(object2);
-                                expect(array[1]).toEqual(object2);
-                                expect(array[2]).toEqual(object);
-                                expect(array[3]).toEqual(object2);
-                                testOk = true;
-                            });
-                        });
-                    }).fail(log);
+                db.save(object).then(function (result) {
+                    object = result;
+                    var object2 = _.extend({}, object);
+                    object2.value = "test2";
+                    return db.save(object2)
+                }).then(function (object2) {
+                    expect(object).not.toEqual(object2);
+                    return Q.all([
+                        db.get(object2),
+                        db.get({_id: object._id}),
+                        db.get({_id: object._id, _rev: object._rev}),
+                        db.get({_id: object._id, _rev: object2._rev})
+                    ]).then(function(array) {
+                        expect(array[0]).toEqual(object2);
+                        expect(array[1]).toEqual(object2);
+                        expect(array[2]).toEqual(object);
+                        expect(array[3]).toEqual(object2);
+                        testOk = true;
+                    });
+                }).fail(log);
                 waitsFor(asyncTest);
             });
 
