@@ -4,10 +4,12 @@ define([
     "underscore",
     "utils/StringUtils",
     "bridge/RemoteFacadeBridge",
-    "basicStorage/InMemoryStorage"
+    "basicStorage/InMemoryStorage",
+    "utils/Logger"
 ],
-    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage) {
+    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage, Logger) {
         describe('SyncStorage', function () {
+            var logger = new Logger("SyncDbSyncSpec");
             var db;
             var remoteDb;
             var object;
@@ -56,7 +58,7 @@ define([
                     host:"http://localhost:5984",
                     name:"sync_test"
                 });
-                simpleStorage = new InMemoryStorage();
+                //simpleStorage = new InMemoryStorage();
                 db = new SyncStorage("local", simpleStorage);
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
