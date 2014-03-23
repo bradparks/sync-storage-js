@@ -223,7 +223,7 @@ define([
                 });
             }).fail(function(err) {
                 logger.info("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(err));
-                // rollback rep
+                // TODO rollback rep
                 return {
                     error:true,
                     message:"Something went bad when updating objects"
