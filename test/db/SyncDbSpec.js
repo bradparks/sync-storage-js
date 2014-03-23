@@ -56,14 +56,19 @@ define([
             beforeEach(function () {
                 logger.info("");
                 logger.info("starting test...");
-                var simpleStorage = new CouchDBBridge("http://localhost:5984", "sync_test");
-                //simpleStorage = new InMemoryStorage();
+                var simpleStorage = new CouchDBBridge({
+                    host:"http://localhost:5984",
+                    name:"sync_test"
+                });
+                simpleStorage = new InMemoryStorage();
                 db = new SyncStorage("local", simpleStorage);
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
                 waitPromise(
-                    simpleStorage.destroy().then(function() {
+                    simpleStorage.init().then(function() {
+                        return simpleStorage.destroy();
+                    }).then(function() {
                         return simpleStorage.create();
                     })
                 );
@@ -86,13 +91,11 @@ define([
                 var object2;
                 db.save(object).then(function(result) {
                     object = result;
-                    return db.get(result);
-                })
-                .then(function (result) {
+                    return db.get(request(result));
+                }).then(function (result) {
                     object2 = result;
                     expect(result).toEqual(object);
-                })
-                .then(function() {
+                }).then(function() {
                     return db.get({_id: object._id});
                 }).then(function(result) {
                     expect(result).toEqual(object);
@@ -155,15 +158,15 @@ define([
             });
 
             it('deletes an object', function () {
-                db.save(object)
-                    .then(function (object) {
-                        db.del(object).then(function() {
-                            db.get(object).then(function(result) {
-                                expect(result).toBe(null);
-                                testOk = true;
-                            });
-                        }).fail(log);
-                    }).fail(log);
+                db.save(object).then(function (result) {
+                    object = result;
+                    return db.del(object)
+                }).then(function() {
+                    return db.get(object)
+                }).then(function(result) {
+                    expect(result).toBe(null);
+                    testOk = true;
+                }).fail(log);
                 waitsFor(asyncTest);
             });
 
