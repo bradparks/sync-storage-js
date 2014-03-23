@@ -2,11 +2,11 @@ define([
 "utils/Request",
 "utils/Logger"
 ], function(Request, Logger) {
-    var classe = function(host, collectionName) {
+    var classe = function(config) {
         var self = this;
-        this.host = host;
-        this.name = collectionName;
-        this.url = host + "/" + this.name + "/";
+        this.host = config.host;
+        this.name = config.name;
+        this.url = this.host + "/" + this.name + "/";
     }
 
     var logger = new Logger("CouchDBBridge");
@@ -31,10 +31,14 @@ define([
         })
     }
 
+    classe.prototype.init = function() {
+        return this.create();
+    }
+
     classe.prototype.isSupported = function() {
         return new Request("get", this.host).call().then(function(result) {
             try {
-                var data = JSON.parse(result.data)
+                var data = JSON.parse(result.data);
                 return data.couchdb ? true : false;
             } catch(e) {
                 return false;

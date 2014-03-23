@@ -1,5 +1,5 @@
 define([
-    "bridge/CouchDBBridge"
+    "bridge/RemoteFacadeBridge"
 ],
 function (Bridge) {
     describe('Bridge', function () {
@@ -21,8 +21,15 @@ function (Bridge) {
         var object;
 
         beforeEach(function () {
-            storage = new Bridge("http://localhost:5984", "test");
-            waitPromise(storage.destroy());
+            storage = new Bridge({
+                host:"http://localhost:5984",
+                name:"test"
+            });
+            waitPromise(
+                storage.init().then(function() {
+                    return storage.destroy();
+                })
+            );
             object = {value: "test"};
         });
 
