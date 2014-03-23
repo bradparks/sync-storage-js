@@ -4,6 +4,9 @@ define([
 "utils/FunctionUtils",
 "utils/Logger"
 ], function(Q, _, FunctionUtils, Logger) {
+
+    var allKey = "$ALL";
+
     var classe = function(storage) {
         this.storage = storage;
         init(this);
@@ -15,7 +18,7 @@ define([
         return defer.promise;
     }
 
-    var logger = new Logger("IndexStorage");
+    var logger = new Logger("IndexStorage", Logger.INFO);
 
     var checkBuffer = function(self) {
         if (_.size(self.buffer) == 0) {
@@ -25,6 +28,7 @@ define([
             if (_.size(self.buffer) == 0) {
                 return emptyPromise();
             }
+            var defer = Q.defer();
             FunctionUtils.onCondition(function() {
                 var pass = false;
                 if (!self.lock) {
@@ -45,23 +49,24 @@ define([
                 }
                 logger.debug("saving array="+JSON.stringify(array));
                 self.buffer = {};
-                logger.debug("save _all="+JSON.stringify(array));
-                return self.storage.save("_all", array).then(function() {
+                return self.storage.save(allKey, array).then(function() {
                     self.lock = false;
+                    defer.resolve();
                 });
             });
+            return defer.promise;
         }).then(function() {
             return checkBuffer(self);
         });
     }
-    
+
     classe.prototype.addIndexKey = function(key, value) {
         this.buffer[key] = value;
         return checkBuffer(this);
     }
 
     classe.prototype.getAll = function() {
-        return this.storage.get("_all").then(function(result) {
+        return this.storage.get(allKey).then(function(result) {
             logger.debug("result _all="+JSON.stringify(result));
             return result ? result : {};
         });
@@ -78,7 +83,7 @@ define([
 
     classe.prototype.destroy = function() {
         var self = this;
-        return this.storage.del("_all").then(function() {
+        return this.storage.del(allKey).then(function() {
             init(self);
         });
     }
