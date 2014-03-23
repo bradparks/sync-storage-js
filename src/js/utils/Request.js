@@ -7,9 +7,10 @@ define([
         this.method = method;
         this.url = url;
         this.data = data;
+        this.retry = 0;
     }
 
-    var logger = new Logger("Request");
+    var logger = new Logger("Request", Logger.INFO);
 
     classe.prototype.call = function() {
         logger.debug(this.method.toUpperCase() + " " + this.url);
@@ -39,7 +40,23 @@ define([
             if (result.statusCode == 404) {
                 defer.resolve(result);
             } else {
-                defer.reject(result);
+                if (!result.statusCode && self.retry < 5) {
+                    self.retry++;
+                    logger.info("retry "+self.retry);
+                    return self.call().then(function(result) {
+                        defer.resolve(result);
+                    }).fail(function(result) {
+                        defer.reject(result);
+                    });
+                } else {
+                    logger.debug("a request failed : ");
+                    logger.debug(result);
+                    logger.debug(req);
+                    if (req.data) {
+                        logger.debug("data length : "+JSON.stringify(req.data).length);
+                    }
+                    defer.reject(result);
+                }
             }
         });
         return defer.promise;
