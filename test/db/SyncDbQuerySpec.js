@@ -3,8 +3,10 @@ define([
     "q",
     "underscore",
     "utils/StringUtils",
+    "bridge/RemoteFacadeBridge",
+    "basicStorage/InMemoryStorage"
 ],
-    function (SyncStorage, Q, _, StringUtils) {
+    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage) {
         describe('SyncStorage', function () {
             var db;
             var remoteDb;
@@ -35,15 +37,37 @@ define([
             var stringify = function(object) {
                 console.log(JSON.stringify(object));
             };
+            var waitPromise = function(promise) {
+                var resolved = false;
+                promise.then(function() {
+                    resolved = true;
+                }).fail(function(err) {
+                    logger.error(err);
+                });
+                waitsFor(function() {
+                    return resolved;
+                });
+            };
 
             beforeEach(function () {
                 console.log("");
                 console.log("starting test...");
-                var simpleStorage = null;
+                var simpleStorage = new RemoteFacadeBridge({
+                    host:"http://localhost:5984",
+                    name:"sync_test"
+                });
+                //simpleStorage = new InMemoryStorage();
                 db = new SyncStorage("local", simpleStorage);
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
+                waitPromise(
+                    simpleStorage.init().then(function() {
+                        return simpleStorage.destroy();
+                    }).then(function() {
+                        return simpleStorage.create();
+                    })
+                );
             });
 
             it('query docs by value', function () {
