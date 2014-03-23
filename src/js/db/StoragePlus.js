@@ -9,7 +9,7 @@ define([
         this.name = name;
         this.storage = basicStorage;
         if (!indexStorage) {
-            this.indexStorage = new IndexStorage(new classe("__index__"+name, this.storage, true));
+            this.indexStorage = new IndexStorage(new classe("$$index$$"+name, this.storage, true));
         }
     }
 
@@ -70,7 +70,10 @@ define([
             array.push(_.extend({}, value));
             total++;
         }
-        return this.indexStorage.getAll().then(function(indexes) {
+
+        return self.indexStorage.waitIndex().then(function() {
+            return self.indexStorage.getAll();
+        }).then(function(indexes) {
             var promises = _.map(indexes, function(value, key) {
                 return self.get(key).then(function(doc) {
                     if (doc) {
