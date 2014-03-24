@@ -1,7 +1,8 @@
 define([
 "utils/Request",
-"utils/Logger"
-], function(Request, Logger) {
+"utils/Logger",
+"utils/Lock"
+], function(Request, Logger, Lock) {
     var classe = function(config) {
         var self = this;
         this.host = config.host;
@@ -9,7 +10,7 @@ define([
         this.url = this.host + "/" + this.name + "/";
     }
 
-    var logger = new Logger("CouchDBBridge");
+    var logger = new Logger("CouchDBBridge", Logger.INFO);
 
     classe.prototype.exists = function() {
         return new Request("get", this.url).call().then(function(result) {
@@ -63,7 +64,10 @@ define([
     classe.prototype.save = function(key, object) {
         logger.debug("saving key "+key);
         var self = this;
-        return getCouchObject(self, key).then(function(result) {
+        var lock = Lock.get("CouchDBBridge/"+key);
+        return lock.synchronize().then(function() {
+            return getCouchObject(self, key);
+        }).then(function(result) {
             var storedObject = {
                 data:JSON.stringify(object)
             }
@@ -76,6 +80,12 @@ define([
             logger.debug("saving at key "+key+" : "+JSON.stringify(storedObject));
             return new Request("put", self.url+transformKey(key), JSON.stringify(storedObject)).call().then(function() {
                 return object;
+            });
+        }).then(function(result) {
+            logger.debug("result synchronize");
+            logger.debug(result);
+            return lock.release().then(function() {
+                return result;
             });
         });
     }
