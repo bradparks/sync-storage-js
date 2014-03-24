@@ -58,5 +58,13 @@ function (Lock, Q, Logger) {
             });
             waitsFor(asyncTest);
         });
+
+        it('can be retrieved via static method', function () {
+            var lock = Lock.get("test", 6);
+            var lock2 = Lock.get("test");
+            expect(lock).toBe(lock2);
+            expect(lock.resources).toBe(6);
+            expect(lock2.resources).toBe(6);
+        });
     });
 });

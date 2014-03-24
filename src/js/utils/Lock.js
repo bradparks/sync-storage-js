@@ -46,5 +46,16 @@ define([
         });
     }
 
+    classe.locks = {};
+
+    classe.get = function(object, size) {
+        var lock = classe.locks[object];
+        if (!lock) {
+            lock = new classe(size);
+            classe.locks[object] = lock;
+        }
+        return lock;
+    }
+
     return classe;
 });
