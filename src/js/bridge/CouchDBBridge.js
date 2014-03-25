@@ -78,14 +78,10 @@ define([
                 }
             }
             logger.debug("saving at key "+key+" : "+JSON.stringify(storedObject));
-            return new Request("put", self.url+transformKey(key), JSON.stringify(storedObject)).call().then(function() {
-                return object;
-            });
-        }).then(function(result) {
-            logger.debug("result synchronize");
-            logger.debug(result);
+            return new Request("put", self.url+transformKey(key), JSON.stringify(storedObject)).call();
+        }).then(function() {
             return lock.release().then(function() {
-                return result;
+                return object;
             });
         });
     }
