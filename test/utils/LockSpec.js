@@ -16,6 +16,7 @@ function (Lock, Q, Logger) {
 
         beforeEach(function () {
             logger.info("start test");
+            Lock.locks = {};
             testOk = false;
         });
 
@@ -60,11 +61,25 @@ function (Lock, Q, Logger) {
         });
 
         it('can be retrieved via static method', function () {
-            var lock = Lock.get("test", 6);
+            var size = 6;
+            var lock = Lock.get("test", size);
             var lock2 = Lock.get("test");
             expect(lock).toBe(lock2);
-            expect(lock.resources).toBe(6);
-            expect(lock2.resources).toBe(6);
+            expect(lock.resources).toBe(size);
+            expect(lock2.resources).toBe(size);
+
+            size = 1;
+            lock = Lock.get("test2");
+            lock2 = Lock.get("test2");
+            expect(lock).toBe(lock2);
+            expect(lock.resources).toBe(size);
+            expect(lock2.resources).toBe(size);
+        });
+
+        it('can be retrieved via static method or simple constructor', function () {
+            var lock = new Lock();
+            var lock2 = Lock.get("test");
+            expect(lock).toEqual(lock2);
         });
     });
 });
