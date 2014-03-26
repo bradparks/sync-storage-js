@@ -32,10 +32,12 @@ define([
                 status:status,
                 statusCode:xhr.status
             });
-        }).fail(function(xhr, status) {
+        }).fail(function(xhr, status, error) {
             var result = {
                 status:status,
-                statusCode:xhr.status
+                statusCode:xhr.status,
+                xhr:xhr,
+                error:error
             }
             if (result.statusCode == 404) {
                 defer.resolve(result);
