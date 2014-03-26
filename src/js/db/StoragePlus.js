@@ -24,11 +24,13 @@ define([
     }
 
     classe.prototype.save = function(key, object) {
+        var self = this;
         logger.debug("saving key "+key);
         var newKey = getNewKey(this, key);
         if (this.indexStorage) {
-            this.indexStorage.addIndexKey(key, object).fail(function() {
-                logger.error("impossible to add index "+key);
+            this.indexStorage.addIndexKey(key, object).fail(function(err) {
+                logger.error("impossible to add index "+key+" on "+self.name);
+                logger.error(err);
             });
         }
         return this.storage.save(newKey, object);
@@ -103,11 +105,11 @@ define([
 
     classe.prototype.waitIndex = function() {
         if (this.indexStorage) {
+            logger.info("wait for index on "+this.name);
             return this.indexStorage.waitIndex();
         } else {
-            var defer = Q.defer();
-            defer.resolve();
-            return defer.promise;
+            // should not happen
+            throw "this code should not be called !";
         }
     }
 
