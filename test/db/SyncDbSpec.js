@@ -42,17 +42,8 @@ define([
             var stringify = function(object) {
                 logger.info(JSON.stringify(object));
             };
-            var waitPromise = function(promise) {
-                var resolved = false;
-                promise.then(function() {
-                    resolved = true;
-                }).fail(function(err) {
-                    logger.error(err);
-                });
-                waitsFor(function() {
-                    return resolved;
-                });
-            };
+
+            var startPromise;
 
             beforeEach(function () {
                 logger.info("");
@@ -66,18 +57,17 @@ define([
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
-                waitPromise(
-                    simpleStorage.init().then(function() {
-                        return simpleStorage.destroy();
-                    }).then(function() {
-                        return simpleStorage.create();
-                    })
-                );
+                startPromise = simpleStorage.init().then(function() {
+                    return simpleStorage.destroy();
+                }).then(function() {
+                    return simpleStorage.create();
+                });
             });
 
             it('stores an object and return an object with _id and _rev fields', function () {
-
-                db.save(object).then(function (object) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function (object) {
                     expect(object._id).not.toBe(undefined);
                     expect(object._rev).not.toBe(undefined);
                     expect(object._rev).not.toBe(undefined);
@@ -90,7 +80,9 @@ define([
 
             it('finds an object from its _id or its _id and _rev', function () {
                 var object2;
-                db.save(object).then(function(result) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function (result) {
                     object = result;
                     return db.get(request(result));
                 }).then(function (result) {
@@ -111,7 +103,9 @@ define([
             });
 
             it('finds an object from its _id or its _id and _rev (2 versions)', function () {
-                db.save(object).then(function (result) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function (result) {
                     object = result;
                     var object2 = _.extend({}, object);
                     object2.value = "test2";
@@ -135,8 +129,9 @@ define([
             });
 
             it('modifying an object coming from the db should not modify the db', function () {
-                db.save(object)
-                .then(function (result) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function (result) {
                     object = result;
                     object.value = "plop";
                     return db.get(request(object));
@@ -150,8 +145,9 @@ define([
 
             it('saving an object should not modify it', function () {
                 var copy = _.extend({}, object);
-                db.save(object)
-                .then(function (result) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function (result) {
                     expect(object).toEqual(copy);
                     testOk = true;
                 }).fail(log);
@@ -159,7 +155,9 @@ define([
             });
 
             it('deletes an object', function () {
-                db.save(object).then(function (result) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function (result) {
                     object = result;
                     return db.del(object)
                 }).then(function() {
@@ -173,11 +171,13 @@ define([
 
             it('throw an exception if get is called without _id field', function () {
                 try {
-                db.get({}).then(function() {
-                    expect("an expection to throwned").toBe(true);
-                }).fail(function() {
-                    testOk = true;
-                });
+                    startPromise.then(function() {
+                        return db.get({});
+                    }).then(function() {
+                        expect("an expection to throwned").toBe(true);
+                    }).fail(function() {
+                        testOk = true;
+                    });
                 }catch(e) {
                     testOk = true;
                 }
@@ -185,11 +185,14 @@ define([
             });
 
             it('get function return null if no doc is found', function () {
-                db.get({_id:"plop"}).then(function(result) {
+                startPromise.then(function() {
+                    return db.get({_id:"plop"});
+                }).then(function(result) {
                     expect(result).toBe(null);
                     testOk = true;
                 });
                 waitsFor(asyncTest);
             });
+
         });
     });

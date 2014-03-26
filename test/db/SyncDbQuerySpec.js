@@ -37,17 +37,7 @@ define([
             var stringify = function(object) {
                 console.log(JSON.stringify(object));
             };
-            var waitPromise = function(promise) {
-                var resolved = false;
-                promise.then(function() {
-                    resolved = true;
-                }).fail(function(err) {
-                    logger.error(err);
-                });
-                waitsFor(function() {
-                    return resolved;
-                });
-            };
+            var startPromise;
 
             beforeEach(function () {
                 console.log("");
@@ -61,13 +51,11 @@ define([
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
-                waitPromise(
-                    simpleStorage.init().then(function() {
-                        return simpleStorage.destroy();
-                    }).then(function() {
-                        return simpleStorage.create();
-                    })
-                );
+                startPromise = simpleStorage.init().then(function() {
+                    return simpleStorage.destroy();
+                }).then(function() {
+                    return simpleStorage.create();
+                });
             });
 
             it('query docs by value', function () {
@@ -76,7 +64,9 @@ define([
                     plop:"not queried"
                 }));
                 var objects = [];
-                Q.all(promises).then(function(result) {
+                startPromise.then(function() {
+                    return Q.all(promises);
+                }).then(function(result) {
                     objects = result;
                     expect(result.length).toBe(11);
                     return db.query({

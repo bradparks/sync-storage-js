@@ -39,17 +39,7 @@ define([
             var stringify = function(object) {
                 console.log(JSON.stringify(object));
             };
-            var waitPromise = function(promise) {
-                var resolved = false;
-                promise.then(function() {
-                    resolved = true;
-                }).fail(function(err) {
-                    logger.error(err);
-                });
-                waitsFor(function() {
-                    return resolved;
-                });
-            };
+            var startPromise;
 
             beforeEach(function () {
                 console.log("");
@@ -63,18 +53,17 @@ define([
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
-                waitPromise(
-                    simpleStorage.init().then(function() {
-                        return simpleStorage.destroy();
-                    }).then(function() {
-                        return simpleStorage.create();
-                    })
-                );
+                startPromise = simpleStorage.init().then(function() {
+                    return simpleStorage.destroy();
+                }).then(function() {
+                    return simpleStorage.create();
+                });
             });
 
             it('sync with other SyncStorage', function() {
-
-                db.save(object).then(function(result) {
+                startPromise.then(function() {
+                    return db.save(object);
+                }).then(function(result) {
                     object = result;
                     return db.syncWith(remoteDb);
                 }).then(function(syncResult) {
@@ -91,8 +80,10 @@ define([
             });
 
             it('sync with other SyncStorage (both ways, several objects)', function() {
-                // save 4 objects
-                Q.all(create(db, 4)).then(function(result) {
+                startPromise.then(function() {
+                    // save 4 objects
+                    return Q.all(create(db, 4));
+                }).then(function(result) {
                     // change the value of the 1st object
                     object = result[0];
                     object.value = "plop";
@@ -124,8 +115,9 @@ define([
             it('sync with other SyncStorage (conflicts)', function() {
                 var object1;
                 var object2;
-                 // save 1 object
-                Q.all(create(db, 1)).then(function(result) {
+                startPromise.then(function() {
+                    return Q.all(create(db, 1));
+                }).then(function(result) {
                     object = result[0];
                     return db.syncWith(remoteDb);
                 }).then(function() {
@@ -202,8 +194,9 @@ define([
                 db.onConflict = function(doc1, doc2) {
                     return doc1._rev > doc2._rev ? doc1 : doc2;
                 };
-                 // save 1 object
-                Q.all(create(db, 1)).then(function(result) {
+                startPromise.then(function() {
+                    return Q.all(create(db, 1));
+                }).then(function(result) {
                     object = result[0];
                     return db.syncWith(remoteDb);
                 }).then(function() {
