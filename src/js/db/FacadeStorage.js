@@ -12,7 +12,10 @@ define([
 
     classe.prototype.init = function() {
         var self = this;
-        logger.debug("looking for implementation in "+self.impls);
+        var implNames = _.map(self.impls, function(impl) {
+            return impl.className;
+        });
+        logger.info("looking for implementation in "+implNames);
         return Q.all(_.map(self.impls, function(impl) {
             var defer = Q.defer();
             var impl = new impl(self.config);
@@ -33,7 +36,7 @@ define([
             });
             if (isSupported) {
                 self.implClasse = self.impls[index];
-                logger.debug("class "+self.implClasse+" will be used");
+                logger.info("class "+self.implClasse.className+" will be used");
                 self.impl = new self.implClasse(self.config);
                 logger.debug(self.impl);
                 return self.impl.init();

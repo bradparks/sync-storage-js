@@ -10,6 +10,8 @@ define([
         this.url = this.host + "/" + this.name + "/";
     }
 
+    classe.className = "CouchDB";
+
     var logger = new Logger("CouchDBBridge", Logger.INFO);
 
     classe.prototype.exists = function() {
