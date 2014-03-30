@@ -77,5 +77,9 @@ define([
         return this.impl.destroy();
     }
 
+    classe.prototype.query = function(query) {
+        return this.impl.query(query);
+    }
+
     return classe;
 });
