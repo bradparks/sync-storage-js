@@ -176,20 +176,21 @@ define([
         var replicateTo = function(self, destDb) {
             var repKey = "$repTo$"+destDb.name;
             var endRep;
-            return self.storage.get(repKey
-            ).then(function(result) {
+            return self.storage.get(repKey).then(function(result) {
                 var lastRep = result ? result._timestamp : undefined;
                 endRep = new Date().getTime();
                 logger.info("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
-                return self.storageVersion.query({
-                    mapFunction:function(emit, doc) {
-                        if (!doc._synced) {
-                            emit(doc._timestamp, doc);
-                        }
-                    },
-                    startkey:lastRep,
-                    endkey:endRep,
-                    indexDef:"_timestamp"
+                return self.storageVersion.waitIndex().then(function() {
+                    return self.storageVersion.query({
+                        mapFunction:function(emit, doc) {
+                            if (!doc._synced) {
+                                emit(doc._timestamp, doc);
+                            }
+                        },
+                        startkey:lastRep,
+                        endkey:endRep,
+                        indexDef:"_timestamp"
+                    });
                 });
             }).then(function(result) {
                 if (result.total_rows === 0) {
@@ -249,10 +250,14 @@ define([
 
         classe.prototype.destroy = function() {
             var self = this;
-            return Q.all([
-                self.storage.destroy(),
-                self.storageVersion.destroy()
-            ]);
+            return self.storage.waitIndex().then(function() {
+                return self.storageVersion.waitIndex();
+            }).then(function() {
+                return Q.all([
+                    self.storage.destroy(),
+                    self.storageVersion.destroy()
+                ]);
+            });
         }
 
         return classe;
