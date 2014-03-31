@@ -1,7 +1,8 @@
 define([
-    "bridge/RemoteFacadeBridge"
+    "bridge/RemoteFacadeBridge",
+    "q"
 ],
-function (Bridge) {
+function (Bridge, Q) {
     describe('Bridge', function () {
 
         var waitPromise = function(promise) {
@@ -19,23 +20,24 @@ function (Bridge) {
             console.log(JSON.stringify(object));
         };
         var object;
+        var startPromise;
 
         beforeEach(function () {
             storage = new Bridge({
                 host:"http://localhost:5984",
                 name:"test"
             });
-            waitPromise(
-                storage.init().then(function() {
-                    return storage.destroy();
-                })
-            );
+            startPromise = storage.init().then(function() {
+                return storage.destroy();
+            });
             object = {value: "test"};
         });
 
         it('isSupported should return true', function () {
             waitPromise(
-                storage.isSupported().then(function(result) {
+                startPromise.then(function() {
+                    return storage.isSupported();
+                }).then(function(result) {
                     expect(result).toBe(true);
                 })
             );
@@ -43,8 +45,12 @@ function (Bridge) {
 
         it('isSupported should return false', function () {
             storage = new Bridge("http://localhost:1000", "test");
+            startPromise = Q.fcall(function() {
+            });
             waitPromise(
-                storage.isSupported().then(function(result) {
+                startPromise.then(function() {
+                    return storage.isSupported();
+                }).then(function(result) {
                     expect(result).toBe(false);
                 })
             );
@@ -52,7 +58,9 @@ function (Bridge) {
 
         it('exists should return false', function () {
             waitPromise(
-                storage.exists().then(function(result) {
+                startPromise.then(function() {
+                    return storage.exists()
+                }).then(function(result) {
                     expect(result).toBe(false);
                 })
             );
@@ -60,17 +68,21 @@ function (Bridge) {
 
         it('exists should return true', function () {
             waitPromise(
-                storage.create().then(function() {
+                startPromise.then(function() {
+                    return storage.create()
+                }).then(function() {
                     return storage.exists();
                 }).then(function(result) {
                     expect(result).toBe(true);
                 })
-            );
+            )
         });
 
         it('should store key/value and then delete it', function () {
             waitPromise(
-                storage.create().then(function() {
+                startPromise.then(function() {
+                    return storage.create()
+                }).then(function() {
                     return storage.save("key", object);
                 }).then(function() {
                     return storage.get("key");
