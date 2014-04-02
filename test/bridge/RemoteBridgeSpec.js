@@ -94,7 +94,8 @@ function (Bridge, Q, Logger) {
                     expect(result).toEqual(object);
                 }).then(function() {
                     return storage.del("key");
-                }).then(function() {
+                }).then(function(result) {
+                    expect(result).toBe(true);
                     return storage.get("key");
                 }).then(function(result) {
                     expect(result).toBe(null);
@@ -102,24 +103,33 @@ function (Bridge, Q, Logger) {
             );
         });
 
-        it('should store key/value and then delete it', function () {
+        it('should store values and then query them', function () {
             waitPromise(
                 startPromise.then(function() {
                     return storage.create()
                 }).then(function() {
                     return Q.all([
-                        storage.save("key1", object),
+                        storage.save("key1", {value: "abc"}),
                         storage.save("key2", object),
                         storage.save("key3", object)
                     ]);
                 }).then(function() {
                     return storage.query({
-                        mapFunction:function(emit, doc) {
-                            emit(doc.data, doc)
-                        }
+                        mapFunction:function(doc) {
+                            emit(doc.value, doc);
+                        },
+                        startkey:"test",
+                        endkey:"test"
                     });
                 }).then(function(result) {
-                    expect(result).toBe(null);
+                    var attendu = {
+                       total_keys:1,
+                       total_rows:2,
+                       rows: {
+                            test:[object, object]
+                       }
+                    };
+                    expect(result).toEqual(attendu);
                 })
             );
         });
