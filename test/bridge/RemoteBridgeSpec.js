@@ -1,9 +1,11 @@
 define([
     "bridge/RemoteFacadeBridge",
-    "q"
+    "q",
+    "utils/Logger"
 ],
-function (Bridge, Q) {
+function (Bridge, Q, Logger) {
     describe('Bridge', function () {
+        var logger = new Logger("RemoteBridgeSpec", Logger.INFO)
 
         var waitPromise = function(promise) {
             var resolved = false;
@@ -13,6 +15,9 @@ function (Bridge, Q) {
                 console.error(JSON.stringify(err));
             });
             waitsFor(function() {
+                if (resolved) {
+                    logger.debug("end test");
+                }
                 return resolved;
             });
         };
@@ -23,6 +28,7 @@ function (Bridge, Q) {
         var startPromise;
 
         beforeEach(function () {
+            logger.info("start test...");
             storage = new Bridge({
                 host:"http://localhost:5984",
                 name:"test"
@@ -44,12 +50,10 @@ function (Bridge, Q) {
         });
 
         it('isSupported should return false', function () {
-            storage = new Bridge("http://localhost:1000", "test");
-            startPromise = Q.fcall(function() {
-            });
+            var storage2 = new Bridge("http://localhost:1000", "test");
             waitPromise(
                 startPromise.then(function() {
-                    return storage.isSupported();
+                    return storage2.isSupported();
                 }).then(function(result) {
                     expect(result).toBe(false);
                 })
@@ -59,7 +63,7 @@ function (Bridge, Q) {
         it('exists should return false', function () {
             waitPromise(
                 startPromise.then(function() {
-                    return storage.exists()
+                    return storage.exists();
                 }).then(function(result) {
                     expect(result).toBe(false);
                 })
@@ -92,6 +96,28 @@ function (Bridge, Q) {
                     return storage.del("key");
                 }).then(function() {
                     return storage.get("key");
+                }).then(function(result) {
+                    expect(result).toBe(null);
+                })
+            );
+        });
+
+        it('should store key/value and then delete it', function () {
+            waitPromise(
+                startPromise.then(function() {
+                    return storage.create()
+                }).then(function() {
+                    return Q.all([
+                        storage.save("key1", object),
+                        storage.save("key2", object),
+                        storage.save("key3", object)
+                    ]);
+                }).then(function() {
+                    return storage.query({
+                        mapFunction:function(emit, doc) {
+                            emit(doc.data, doc)
+                        }
+                    });
                 }).then(function(result) {
                     expect(result).toBe(null);
                 })

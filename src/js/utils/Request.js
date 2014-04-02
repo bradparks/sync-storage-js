@@ -40,7 +40,7 @@ define([
                 error:error
             }
             if (result.statusCode == 404) {
-                defer.resolve(result);
+                defer.reject(result);
             } else {
                 if (!result.statusCode && self.retry < 5) {
                     self.retry++;

@@ -1,8 +1,9 @@
 define([
 "utils/Request",
 "utils/Logger",
-"utils/Lock"
-], function(Request, Logger, Lock) {
+"utils/Lock",
+"q"
+], function(Request, Logger, Lock, Q) {
     var classe = function(config) {
         var self = this;
         this.host = config.host;
@@ -12,26 +13,37 @@ define([
 
     classe.className = "CouchDB";
 
-    var logger = new Logger("CouchDBBridge", Logger.INFO);
+    var logger = new Logger("CouchDBBridge", Logger.DEBUG);
 
     classe.prototype.exists = function() {
-        return new Request("get", this.url).call().then(function(result) {
-            return result.statusCode == 200;
+        var defer = Q.defer();
+        logger.debug("exists call");
+        new Request("get", this.url).call().then(function(result) {
+            logger.info("exists ok");
+            defer.resolve(result.statusCode == 200);
+        }).fail(function(err) {
+            logger.info("exists false");
+            defer.resolve(false);
         });
+        return defer.promise;
     }
 
     classe.prototype.create = function() {
         var self = this;
-        return new Request("put", self.url).call().then(function() {
+        var defer = Q.defer();
+        new Request("put", self.url).call().then(function() {
             logger.info("creating database "+self.url);
+            defer.resolve(true);
         }).fail(function(req) {
             if (req.statusCode != 412) {
                 logger.error("error when creating database "+self.url);
-                return req;
+                defer.reject(req);
             } else {
                 logger.warn(self.url+" already exists");
+                defer.resolve(req);
             }
-        })
+        });
+        return defer.promise;
     }
 
     classe.prototype.init = function() {
@@ -70,15 +82,11 @@ define([
         return lock.synchronize().then(function() {
             return getCouchObject(self, key);
         }).then(function(result) {
-            var storedObject = {
-                data:JSON.stringify(object)
+            var storedObject = _.omit(object, "_id", "_rev")
+            if (result && result._rev) {
+                storedObject._rev = result._rev;
             }
-            if (result && result.data) {
-                var couchObject = JSON.parse(result.data);
-                if (couchObject._rev) {
-                    storedObject._rev = couchObject._rev;
-                }
-            }
+            storedObject._id = key;
             logger.debug("saving at key "+key+" : "+JSON.stringify(storedObject));
             return new Request("put", self.url+transformKey(key), JSON.stringify(storedObject)).call();
         }).then(function() {
@@ -89,9 +97,24 @@ define([
     }
 
     classe.prototype.get = function(key) {
-        return new Request("get", this.url+transformKey(key)).call().then(function(result) {
-            return result.data ? JSON.parse(JSON.parse(result.data).data) : null;
+        var defer = Q.defer();
+        new Request("get", this.url+transformKey(key)).call().then(function(result) {
+            logger.debug("result");
+            logger.debug(result);
+            if (result && result.data) {
+                var object = JSON.parse(result.data)
+                defer.resolve(_.omit(object, "_id", "_rev"));
+            } else {
+                defer.reject(result);
+            }
+        }).fail(function(err) {
+            if (err.statusCode == 404) {
+                defer.resolve(null);
+            } else {
+                defer.reject(err);
+            }
         });
+        return defer.promise;
     }
 
     classe.prototype.del = function(key) {
@@ -117,6 +140,19 @@ define([
         return new Request("delete", self.url).call().then(function(result) {
             logger.info("destroying database "+self.url);
             logger.debug(result);
+        });
+    }
+
+    classe.prototype.query = function(query) {
+        var view = {
+            _id:"_design/myView",
+            language:"javascript",
+            views: {
+                viewName:query.mapFunction
+            }
+        };
+        return new Request("put", self.url + view._id, view).call().then(function() {
+            return new Request("get", self.url + view._id + "/viewName", query);
         });
     }
 
