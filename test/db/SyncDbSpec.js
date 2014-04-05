@@ -194,5 +194,47 @@ define([
                 waitsFor(asyncTest);
             });
 
+            it('query docs by value', function () {
+                var promises = create(db, 10);
+                promises.push(db.save({
+                    plop:"not queried"
+                }));
+                var objects = [];
+                startPromise.then(function() {
+                    return Q.all(promises);
+                }).then(function(result) {
+                    objects = result;
+                    expect(result.length).toBe(11);
+                    return db.query({
+                        mapFunction:function(emit, doc) {
+                            if (doc.value) {
+                                emit(doc.value, doc);
+                            }
+                        },
+                        startkey:"test3",
+                        endkey:"test7",
+                        indexDef:"value"
+                    });
+                }).then(function(result) {
+                    var map = {};
+                    var total = 0;
+                    for (var i = 0;i < objects.length;i++) {
+                        var object = objects[i];
+                        if (object.value && object.value >= "test3" && object.value <= "test7") {
+                            map[object.value] = [object];
+                            total++;
+                        }
+                    }
+                    var attendu = {
+                       total_keys:total,
+                       total_rows:total,
+                       rows: map
+                    };
+                    expect(result).toEqual(attendu);
+                    testOk = true;
+                }).fail(log);
+                waitsFor(asyncTest);
+            });
+
         });
     });
