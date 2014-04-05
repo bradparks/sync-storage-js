@@ -2,8 +2,9 @@ define([
 "utils/Request",
 "utils/Logger",
 "utils/Lock",
-"q"
-], function(Request, Logger, Lock, Q) {
+"q",
+"underscore"
+], function(Request, Logger, Lock, Q, _) {
     var classe = function(config) {
         var self = this;
         this.host = config.host;
@@ -13,11 +14,10 @@ define([
 
     classe.className = "CouchDB";
 
-    var logger = new Logger("CouchDBBridge", Logger.DEBUG);
+    var logger = new Logger("CouchDBBridge", Logger.INFO);
 
     classe.prototype.exists = function() {
         var defer = Q.defer();
-        logger.debug("exists call");
         new Request("get", this.url).call().then(function(result) {
             logger.info("exists ok");
             defer.resolve(result.statusCode == 200);
@@ -74,8 +74,6 @@ define([
     var getCouchObject = function(self, key) {
         var defer = Q.defer();
         new Request("get", self.url+transformKey(key)).call().then(function(result) {
-            logger.debug("result");
-            logger.debug(result);
             if (result && result.data) {
                 var object = JSON.parse(result.data)
                 defer.resolve(object);
@@ -162,14 +160,16 @@ define([
                 }
             }
         };
+        logger.debug("creating view:" + JSON.stringify(view));
         return new Request("put", self.url + view._id, JSON.stringify(view)).call().then(function(result) {
-            logger.info("result view:" + JSON.stringify(result));
+            logger.debug("result view:" + JSON.stringify(result));
             var couchQuery = _.omit(query, "mapFunction");
-            couchQuery = JSON.stringify(couchQuery);
-            return new Request("post", self.url + view._id + "/_view/viewName", couchQuery).call().then(function(result) {
+            //couchQuery = JSON.stringify(couchQuery);
+            return new Request("get", self.url + view._id + "/_view/viewName", couchQuery).call().then(function(result) {
                 var raw = JSON.parse(result.data);
-                logger.debug(raw);
+                var total = 0;
                 var groupBy = _.groupBy(raw.rows, function(row) {
+                    total++;
                     return row.key;
                 });
                 var rows = {};
@@ -178,12 +178,14 @@ define([
                         return _.omit(line.value, "_id", "_rev");
                     });
                 });
-                logger.info(groupBy);
-                return {
-                    total_rows:raw.total_rows,
+                var result = {
+                    total_rows:total,
                     total_keys:_.size(rows),
                     rows: rows
-                }
+                };
+                logger.debug("result query "+JSON.stringify(query)+" : ");
+                logger.debug(result);
+                return result;
             });
         });
     }
