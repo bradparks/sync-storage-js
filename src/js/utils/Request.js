@@ -1,8 +1,9 @@
 define([
 "jquery",
 "q",
-"utils/Logger"
-], function($, Q, Logger) {
+"utils/Logger",
+"underscore"
+], function($, Q, Logger, _) {
     var classe = function(method, url, data) {
         this.method = method;
         this.url = url;
@@ -13,7 +14,6 @@ define([
     var logger = new Logger("Request", Logger.INFO);
 
     classe.prototype.call = function() {
-        logger.debug(this.method.toUpperCase() + " " + this.url);
         var self = this;
         var defer = Q.defer();
         var req = {
@@ -26,6 +26,18 @@ define([
         } else {
             logger.debug(req.data);
         }
+        if (req.type == "GET") {
+            req.url += "?";
+            _.each(req.data, function(value, key) {
+                if (typeof value == "string") {
+                    value = '"'+value+'"';
+                }
+                req.url += key + "=" + value + "&";
+            });
+            req.url = req.url.substring(0, req.url.length-1);
+            delete req.data;
+        }
+        logger.debug(req.type + " " + req.url);
         $.ajax(req).done(function(result, status, xhr) {
             defer.resolve({
                 data:result,
