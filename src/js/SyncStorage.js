@@ -91,7 +91,7 @@ define([
                             }
                         } else {
                             var cleanObject = function(object) {
-                                object._timstamp = new Date().getTime();
+                                object._timestamp = new Date().getTime();
                                 delete object._synced;
                                 delete object._conflict;
                                 saveVersion(self, object);
