@@ -3,8 +3,9 @@ define([
 "utils/Logger",
 "utils/Lock",
 "q",
-"underscore"
-], function(Request, Logger, Lock, Q, _) {
+"underscore",
+"utils/StringUtils"
+], function(Request, Logger, Lock, Q, _, StringUtils) {
     var classe = function(config) {
         var self = this;
         this.host = config.host;
@@ -71,6 +72,28 @@ define([
         return result;
     }
 
+    var prefix = "couchFix";
+
+    var replacePrefix = function(object, prefix, replace) {
+        var result = _.extend({}, object);
+        _.each(result, function(value, key) {
+            if (StringUtils.startsWith(key, prefix)) {
+                delete result[key];
+                key = replace + key.substring(prefix.length);
+                result[key] = value;
+            }
+        });
+        return result;
+    }
+
+    var box = function(object) {
+        return replacePrefix(object, "_", prefix);
+    }
+
+    var unbox = function(object) {
+        return replacePrefix(object, prefix, "_");
+    }
+
     var getCouchObject = function(self, key) {
         var defer = Q.defer();
         new Request("get", self.url+transformKey(key)).call().then(function(result) {
@@ -98,7 +121,7 @@ define([
         return lock.synchronize().then(function() {
             return getCouchObject(self, key);
         }).then(function(result) {
-            var storedObject = _.omit(object, "_id", "_rev")
+            var storedObject = box(object);
             if (result && result._rev) {
                 storedObject._rev = result._rev;
             }
@@ -116,7 +139,7 @@ define([
         var self = this;
         return getCouchObject(self, key).then(function(result) {
             if (result) {
-                return _.omit(result, "_id", "_rev");
+                return unbox(_.omit(result, "_id", "_rev"));
             } else {
                 return result;
             }
@@ -164,7 +187,6 @@ define([
         return new Request("put", self.url + view._id, JSON.stringify(view)).call().then(function(result) {
             logger.debug("result view:" + JSON.stringify(result));
             var couchQuery = _.omit(query, "mapFunction");
-            //couchQuery = JSON.stringify(couchQuery);
             return new Request("get", self.url + view._id + "/_view/viewName", couchQuery).call().then(function(result) {
                 var raw = JSON.parse(result.data);
                 var total = 0;
