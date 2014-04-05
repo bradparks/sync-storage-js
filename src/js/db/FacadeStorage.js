@@ -81,5 +81,10 @@ define([
         return this.impl.query(query);
     }
 
+    classe.prototype.isAdvanced = function() {
+        var impl = this.impl;
+        return impl.isAdvanced && impl.isAdvanced();
+    }
+
     return classe;
 });

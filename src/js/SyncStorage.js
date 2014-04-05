@@ -7,22 +7,33 @@ define([
     "Random",
     "utils/Logger"
 ],
-    function (StringUtils, _, Q, StoragePlus, Storage, Random, Logger) {
+    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger) {
+        var getFinalStorage = function(url, storage) {
+            return storage.isAdvanced && storage.isAdvanced() ? storage : new StoragePlus(url, storage);
+        }
+
         var classe = function (url, simpleStorage) {
             var self = this;
             this.name = url;
             this.isLocal = !StringUtils.startsWith(url, "http");
             if (!simpleStorage) {
-                simpleStorage = new Storage();
+                simpleStorage = new InMemoryStorage();
             }
-            this.storage = new StoragePlus(url, simpleStorage);
-            this.storageVersion = new StoragePlus("version$$"+url, simpleStorage);
+            this.simpleStorage = simpleStorage;
             this.onConflict = function(doc1, doc2) {
                 logger.error("Conflict detected on "+self.name+". This method should be overriden. doc1 and doc2 in conflicts :");
                 logger.error(doc1);
                 logger.error(doc2);
             }
         };
+
+        classe.prototype.init = function() {
+            var self = this;
+            return self.simpleStorage.init().then(function() {
+                self.storage = getFinalStorage(self.name, self.simpleStorage);
+                self.storageVersion = getFinalStorage("version$$"+self.name, self.simpleStorage);
+            });
+        }
 
         var logger = new Logger("SyncStorage");
 

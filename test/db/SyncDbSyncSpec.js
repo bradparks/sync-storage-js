@@ -56,7 +56,10 @@ define([
                 startPromise = simpleStorage.init().then(function() {
                     return simpleStorage.destroy();
                 }).then(function() {
-                    return simpleStorage.create();
+                    return Q.all([
+                        db.init(),
+                        remoteDb.init()
+                    ]);
                 });
             });
 

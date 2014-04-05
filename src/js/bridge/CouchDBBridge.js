@@ -190,5 +190,9 @@ define([
         });
     }
 
+    classe.prototype.isAdvanced = function() {
+        return true;
+    }
+
     return classe;
 });
