@@ -198,12 +198,12 @@ define([
             });
 
             it('query docs by value', function () {
-                var promises = create(db, 10);
-                promises.push(db.save({
-                    plop:"not queried"
-                }));
                 var objects = [];
                 startPromise.then(function() {
+                    var promises = create(db, 10);
+                    promises.push(db.save({
+                        plop:"not queried"
+                    }));
                     return Q.all(promises);
                 }).then(function(result) {
                     objects = result;
