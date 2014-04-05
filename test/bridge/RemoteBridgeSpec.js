@@ -111,7 +111,8 @@ function (Bridge, Q, Logger) {
                     return Q.all([
                         storage.save("key1", {value: "abc"}),
                         storage.save("key2", object),
-                        storage.save("key3", object)
+                        storage.save("key3", object),
+                        storage.save("key4", {value:"test56"})
                     ]);
                 }).then(function() {
                     return storage.query({
