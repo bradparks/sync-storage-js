@@ -91,7 +91,7 @@ define([
     }
 
     var unbox = function(object) {
-        return replacePrefix(object, prefix, "_");
+        return replacePrefix(_.omit(object, "_id", "_rev"), prefix, "_");
     }
 
     var getCouchObject = function(self, key) {
@@ -139,7 +139,7 @@ define([
         var self = this;
         return getCouchObject(self, key).then(function(result) {
             if (result) {
-                return unbox(_.omit(result, "_id", "_rev"));
+                return unbox(result);
             } else {
                 return result;
             }
@@ -175,11 +175,13 @@ define([
 
     classe.prototype.query = function(query) {
         var self = this;
+        var strFunc = query.mapFunction+"";
+        strFunc = strFunc.replace("function (emit, doc)", "function (doc)")
         var view = {
             "_id":"_design/exemple",
             "views": {
                 "viewName": {
-                    "map": query.mapFunction+""
+                    "map": strFunc
                 }
             }
         };
@@ -197,7 +199,7 @@ define([
                 var rows = {};
                 _.each(groupBy, function(lines, key) {
                     rows[key] = _.map(lines, function(line) {
-                        return _.omit(line.value, "_id", "_rev");
+                        return unbox(line.value);
                     });
                 });
                 var result = {
