@@ -4,7 +4,7 @@ define([
     "utils/Logger"
 ],
 function (Bridge, Q, Logger) {
-    describe('Bridge', function () {
+    describe('RemoteBridge', function () {
         var logger = new Logger("RemoteBridgeSpec", Logger.INFO)
 
         var waitPromise = function(promise) {
