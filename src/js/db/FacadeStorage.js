@@ -50,8 +50,10 @@ define([
         return this.impl.exists();
     }
 
-    classe.prototype.create = function() {
-        return this.impl.create();
+    classe.prototype.create = function(name) {
+        var newConfig = _.omit(this.config, "name");
+        newConfig.name = name;
+        return new classe(this.impls, newConfig);
     }
 
     classe.prototype.isSupported = function() {
@@ -84,6 +86,16 @@ define([
     classe.prototype.isAdvanced = function() {
         var impl = this.impl;
         return impl.isAdvanced && impl.isAdvanced();
+    }
+
+    classe.prototype.waitIndex = function() {
+        if (!this.impl.waitIndex) {
+            logger.debug("call waitIndex empty");
+            return Q.fcall(function() {});
+        } else {
+            logger.debug("call waitIndex impl");
+            return this.impl.waitIndex();
+        }
     }
 
     return classe;

@@ -29,7 +29,7 @@ define([
         return defer.promise;
     }
 
-    classe.prototype.create = function() {
+    classe.prototype.initDb = function() {
         var self = this;
         var defer = Q.defer();
         new Request("put", self.url).call().then(function() {
@@ -48,7 +48,7 @@ define([
     }
 
     classe.prototype.init = function() {
-        return this.create();
+        return this.initDb();
     }
 
     classe.prototype.isSupported = function() {
@@ -173,10 +173,46 @@ define([
         });
     }
 
+    var isDefined = function(value) {
+        return value !== null && value !== undefined;
+    }
+
+    var filterToString = function(filter) {
+        var toValue = function(value) {
+            var result = value;
+            if (typeof value == "string") {
+                result = "\"" + result + "\"";
+            }
+            return result;
+        }
+        var toComp = function(value1, value2, inclusive) {
+            var result = "&& (" + value1 + "<";
+            result += inclusive ? "=" : "";
+            result += value2 + ")";
+            return result;
+        }
+
+        var result = "";
+        result += "var value = doc."+filter.keyName+";\n";
+        result += "flag &= (true ";
+        if (isDefined(filter.lowBound)) {
+            result += toComp(toValue(filter.lowBound), "value", filter.lowInclusive);
+        }
+        if (isDefined(filter.highBound)) {
+            result += toComp("value", toValue(filter.highBound), filter.highInclusive);
+        }
+        result += ");\n";
+        return result;
+    }
+
     classe.prototype.query = function(query) {
         var self = this;
-        var strFunc = query.mapFunction+"";
-        strFunc = strFunc.replace("function (emit, doc)", "function (doc)")
+        var strFunc = "function (doc) {\n";
+        strFunc += "var flag = true;\n";
+        _.each(query.filters, function(filter) {
+            strFunc += filterToString(filter);
+        });
+        strFunc += "if (flag) {emit(doc._id, doc);}}";
         var view = {
             "_id":"_design/exemple",
             "views": {

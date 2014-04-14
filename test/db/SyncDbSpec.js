@@ -6,9 +6,12 @@ define([
     "bridge/CouchDBBridge",
     "utils/Logger",
     "basicStorage/InMemoryStorage",
-    "bridge/RemoteFacadeBridge"
+    "bridge/RemoteFacadeBridge",
+    "query/Filter",
+    "query/Query",
+    "query/Sort"
 ],
-    function (SyncStorage, Q, _, StringUtils, CouchDBBridge, Logger, InMemoryStorage, RemoteFacadeBridge) {
+    function (SyncStorage, Q, _, StringUtils, CouchDBBridge, Logger, InMemoryStorage, RemoteFacadeBridge, Filter, Query, Sort) {
         describe('SyncStorage', function () {
             var logger = new Logger("SyncDbSpec");
             //logger.root.level = Logger.DEBUG;
@@ -57,8 +60,14 @@ define([
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
-                startPromise = simpleStorage.init().then(function() {
-                    return simpleStorage.destroy();
+                startPromise = Q.all([
+                    db.init(),
+                    remoteDb.init()
+                ]).then(function() {
+                    return Q.all([
+                        db.destroy(),
+                        remoteDb.destroy()
+                    ]);
                 }).then(function() {
                     return Q.all([
                         db.init(),
@@ -208,16 +217,10 @@ define([
                 }).then(function(result) {
                     objects = result;
                     expect(result.length).toBe(11);
-                    return db.query({
-                        mapFunction:function(emit, doc) {
-                            if (doc.value) {
-                                emit(doc.value, doc);
-                            }
-                        },
-                        startkey:"test3",
-                        endkey:"test7",
-                        indexDef:"value"
-                    });
+                    var filter = new Filter("value", "test3", "test7", true, true);
+                    var sort = new Sort("value");
+                    var query = new Query(null, [filter], null);
+                    return db.query(query);
                 }).then(function(result) {
                     var map = {};
                     var total = 0;
@@ -233,6 +236,8 @@ define([
                        total_rows:total,
                        rows: map
                     };
+                    //logger.info(JSON.stringify(attendu, null, 2));
+                    //logger.info(JSON.stringify(result, null, 2));
                     expect(result).toEqual(attendu);
                     testOk = true;
                 }).fail(log);

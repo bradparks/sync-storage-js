@@ -8,8 +8,8 @@ define([
     "utils/Logger"
 ],
     function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger) {
-        var getFinalStorage = function(url, storage) {
-            return storage.isAdvanced && storage.isAdvanced() ? storage : new StoragePlus(url, storage);
+        var getFinalStorage = function(name, storage) {
+            return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
 
         var classe = function (url, simpleStorage) {
@@ -30,8 +30,13 @@ define([
         classe.prototype.init = function() {
             var self = this;
             return self.simpleStorage.init().then(function() {
+                var nameVersion = "version$$"+self.name;
                 self.storage = getFinalStorage(self.name, self.simpleStorage);
-                self.storageVersion = getFinalStorage("version$$"+self.name, self.simpleStorage);
+                self.storageVersion = getFinalStorage(nameVersion, self.simpleStorage);
+                return Q.all([
+                    self.storage.init(),
+                    self.storageVersion.init()
+                ]);
             });
         }
 
