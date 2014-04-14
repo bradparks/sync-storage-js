@@ -73,7 +73,7 @@ function (Bridge, Q, Logger) {
         it('exists should return true', function () {
             waitPromise(
                 startPromise.then(function() {
-                    return storage.create()
+                    return storage.init()
                 }).then(function() {
                     return storage.exists();
                 }).then(function(result) {
@@ -85,7 +85,7 @@ function (Bridge, Q, Logger) {
         it('should store key/value and then delete it', function () {
             waitPromise(
                 startPromise.then(function() {
-                    return storage.create()
+                    return storage.init()
                 }).then(function() {
                     return storage.save("key", object);
                 }).then(function() {
@@ -106,7 +106,7 @@ function (Bridge, Q, Logger) {
         it('should store values and then query them', function () {
             waitPromise(
                 startPromise.then(function() {
-                    return storage.create()
+                    return storage.init()
                 }).then(function() {
                     return Q.all([
                         storage.save("key1", {value: "abc"}),
