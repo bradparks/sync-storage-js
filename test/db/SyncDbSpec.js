@@ -219,7 +219,7 @@ define([
                     expect(result.length).toBe(11);
                     var filter = new Filter("value", "test3", "test7", true, true);
                     var sort = new Sort("value");
-                    var query = new Query(null, [filter], null);
+                    var query = new Query(null, [filter], [sort]);
                     return db.query(query);
                 }).then(function(result) {
                     var map = {};

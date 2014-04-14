@@ -206,13 +206,20 @@ define([
     }
 
     classe.prototype.query = function(query) {
+        var sortKey = "_id";
+        if (query.sorts && query.sorts.length > 0) {
+            if (query.sorts.length > 1) {
+                throw "only 1 sort at the same time is supported";
+            }
+            sortKey = query.sorts[0].keyName;
+        }
         var self = this;
         var strFunc = "function (doc) {\n";
         strFunc += "var flag = true;\n";
         _.each(query.filters, function(filter) {
             strFunc += filterToString(filter);
         });
-        strFunc += "if (flag) {emit(doc._id, doc);}}";
+        strFunc += "if (flag) {emit(doc."+sortKey+", doc);}}";
         var view = {
             "_id":"_design/exemple",
             "views": {
