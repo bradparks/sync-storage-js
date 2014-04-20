@@ -177,14 +177,9 @@ define([
                     expect(array[0]).not.toEqual(array[1]);
                     var conflicted = array[0]._rev < array[1]._rev ? array[0] : array[1];
                     expect(conflicted._conflict).toBe(true);
-                    delete array[1]._conflict;
-                    delete array[0]._conflict;
-                    delete array[1]._timestamp;
-                    delete array[0]._timestamp;
-                    delete object1._timestamp;
-                    delete object2._timestamp;
-                    expect(array[0]).toEqual(object1);
-                    expect(array[1]).toEqual(object2);
+
+                    expect(_.omit(array[0], "_conflict", "_timestamp")).toEqual(_.omit(object1, "_timestamp"));
+                    expect(_.omit(array[1], "_conflict", "_timestamp")).toEqual(_.omit(object2, "_timestamp"));
 
                     var filter = new Filter("_conflict", true, true, true, true);
                     var query = new Query(null, [filter], null);
