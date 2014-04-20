@@ -53,8 +53,14 @@ define([
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};
                 testOk = false;
-                startPromise = simpleStorage.init().then(function() {
-                    return simpleStorage.destroy();
+                startPromise = Q.all([
+                    db.init(),
+                    remoteDb.init()
+                ]).then(function() {
+                    return Q.all([
+                        db.destroy(),
+                        remoteDb.destroy()
+                    ]);
                 }).then(function() {
                     return Q.all([
                         db.init(),
