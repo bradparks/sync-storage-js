@@ -239,7 +239,7 @@ define([
                     return result;
                 });
             }).fail(function(err) {
-                logger.info("rep "+self.name+" to "+destDb.name+" ended with error : "+JSON.stringify(err));
+                logger.error("rep "+self.name+" to "+destDb.name+" ended with error : "+JSON.stringify(err));
                 // TODO rollback rep
                 return {
                     error:true,
