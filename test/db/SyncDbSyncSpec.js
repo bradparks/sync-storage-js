@@ -5,9 +5,11 @@ define([
     "utils/StringUtils",
     "bridge/RemoteFacadeBridge",
     "basicStorage/InMemoryStorage",
-    "utils/Logger"
+    "utils/Logger",
+    "query/Query",
+    "query/Filter"
 ],
-    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage, Logger) {
+    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage, Logger, Query, Filter) {
         describe('SyncStorage', function () {
             var logger = new Logger("SyncDbSyncSpec");
             var db;
@@ -184,14 +186,9 @@ define([
                     expect(array[0]).toEqual(object1);
                     expect(array[1]).toEqual(object2);
 
-                    return db.queryHistory({
-                        mapFunction:function(emit, doc) {
-                            if (doc._conflict) {
-                                emit(doc._id, doc);
-                            }
-                        },
-                        indexDef:"_conflict"
-                    });
+                    var filter = new Filter("_conflict", true, true, true, true);
+                    var query = new Query(null, [filter], null);
+                    return db.queryHistory(query);
                 }).then(function(result) {
                     expect(result.total_rows).toBe(1);
                     testOk = true;
