@@ -218,14 +218,9 @@ define([
                 }).then(function(result) {
                     return db.syncWith(remoteDb);
                 }).then(function() {
-                    return db.queryHistory({
-                        mapFunction:function(emit, doc) {
-                            if (doc._conflict) {
-                                emit(doc._id, doc);
-                            }
-                        },
-                        indexDef:"_conflict"
-                    });
+                    var filter = new Filter("_conflict", true, true, true, true);
+                    var query = new Query(null, [filter], null);
+                    return db.queryHistory(query);
                 }).then(function(result) {
                     expect(result.total_rows).toBe(0);
                     testOk = true;
