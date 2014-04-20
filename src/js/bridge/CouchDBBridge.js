@@ -4,8 +4,9 @@ define([
 "utils/Lock",
 "q",
 "underscore",
-"utils/StringUtils"
-], function(Request, Logger, Lock, Q, _, StringUtils) {
+"utils/StringUtils",
+"Random"
+], function(Request, Logger, Lock, Q, _, StringUtils, Random) {
     var classe = function(config) {
         var self = this;
         this.host = config.host;
@@ -224,17 +225,25 @@ define([
             strFunc += filterToString(filter);
         });
         strFunc += "if (flag) {emit(doc."+sortKey+", doc);}}";
+        var idView = new Random().nextAlpha(20);
         var view = {
-            "_id":"_design/exemple",
+            "_id":"_design/"+idView,
             "views": {
                 "viewName": {
                     "map": strFunc
                 }
             }
         };
-        logger.debug("creating view:" + JSON.stringify(view));
-        return new Request("put", self.url + view._id, JSON.stringify(view)).call().then(function(result) {
+        var tempRev;
+
+        var startPromise = Q.fcall(function() {});
+        return startPromise.then(function() {
+            logger.debug("creating view:" + JSON.stringify(view));
+            return new Request("put", self.url + view._id, JSON.stringify(view)).call();
+        }).then(function(result) {
             logger.debug("result view:" + JSON.stringify(result));
+            var data = JSON.parse(result.data);
+            tempRev = data.rev;
             var couchQuery = _.omit(query, "mapFunction");
             return new Request("get", self.url + view._id + "/_view/viewName", couchQuery).call().then(function(result) {
                 var raw = JSON.parse(result.data);
@@ -256,6 +265,12 @@ define([
                 };
                 logger.debug("result query "+JSON.stringify(query)+" : ");
                 logger.debug(result);
+                return result;
+            });
+        }).then(function(result) {
+            logger.debug("deleting view:" + JSON.stringify(view));
+            logger.debug("tempRev="+tempRev);
+            return new Request("delete", self.url + view._id + "?rev="+tempRev).call().then(function() {
                 return result;
             });
         });
