@@ -1,9 +1,11 @@
 define([
     "bridge/RemoteFacadeBridge",
     "q",
-    "utils/Logger"
+    "utils/Logger",
+    "query/Query",
+    "query/Filter"
 ],
-function (Bridge, Q, Logger) {
+function (Bridge, Q, Logger, Query, Filter) {
     describe('RemoteBridge', function () {
         var logger = new Logger("RemoteBridgeSpec", Logger.INFO)
 
@@ -115,19 +117,16 @@ function (Bridge, Q, Logger) {
                         storage.save("key4", {value:"test56"})
                     ]);
                 }).then(function() {
-                    return storage.query({
-                        mapFunction:function(doc) {
-                            emit(doc.value, doc);
-                        },
-                        startkey:"test",
-                        endkey:"test"
-                    });
+                    var filter = new Filter("value", "test", "test", true, true);
+                    var query = new Query(null, [filter], null);
+                    return storage.query(query);
                 }).then(function(result) {
                     var attendu = {
-                       total_keys:1,
+                       total_keys:2,
                        total_rows:2,
                        rows: {
-                            test:[object, object]
+                            key2:[object],
+                            key3:[object]
                        }
                     };
                     expect(result).toEqual(attendu);
