@@ -8,6 +8,13 @@ define([
 
     var logger = new Logger("InMemoryStorage");
 
+    var empty = function() {
+        return Q.fcall(function() {});
+    }
+
+    classe.prototype.init = empty;
+    classe.prototype.waitIndex = empty;
+
     classe.prototype.save = function (key, object) {
         var defer = Q.defer();
         this[key] = JSON.stringify(object);
@@ -41,8 +48,38 @@ define([
         return defer.promise;
     }
 
-    classe.prototype.create = classe.prototype.destroy;
-    classe.prototype.init = classe.prototype.destroy;
+    classe.prototype.query = function(query) {
+        var self = this;
+        return Q.fcall(function() {
+            var result = {};
+            result.rows = [];
+            _.each(self, function(data, key) {
+                var doc = JSON.parse(data);
+                var ok = _.every(query.filters, function(filter) {
+                    var retour = filter.toFunction()(doc);
+                    return retour;
+                });
+                if (ok) {
+                    result.rows.push(doc);
+                }
+            });
+            result.total_rows = _.size(result.rows);
+            result.total_keys = _.size(result.rows);
+            var sortKey = query.sorts && query.sorts.length > 0 ? query.sorts[0].keyName : null;
+            result.rows = _.groupBy(result.rows, function(doc, key) {
+                return sortKey ? doc[sortKey] : key;
+            });
+            return result;
+        });
+    }
+
+    classe.prototype.isAdvanced = function() {
+        return true;
+    }
+
+    classe.prototype.create = function(name) {
+        return new classe();
+    }
 
     return classe;
 });
