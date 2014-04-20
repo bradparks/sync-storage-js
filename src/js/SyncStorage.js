@@ -5,9 +5,11 @@ define([
     "db/StoragePlus",
     "basicStorage/InMemoryStorage",
     "Random",
-    "utils/Logger"
+    "utils/Logger",
+    "query/Query",
+    "query/Filter"
 ],
-    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger) {
+    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter) {
         var getFinalStorage = function(name, storage) {
             return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
@@ -197,16 +199,9 @@ define([
                 endRep = new Date().getTime();
                 logger.info("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
                 return self.storageVersion.waitIndex().then(function() {
-                    return self.storageVersion.query({
-                        mapFunction:function(emit, doc) {
-                            if (!doc._synced) {
-                                emit(doc._timestamp, doc);
-                            }
-                        },
-                        startkey:lastRep,
-                        endkey:endRep,
-                        indexDef:"_timestamp"
-                    });
+                    var filter = new Filter("_timestamp", lastRep, endRep, true, true);
+                    var query = new Query(null, [filter], null);
+                    return self.storageVersion.query(query);
                 });
             }).then(function(result) {
                 if (result.total_rows === 0) {
@@ -217,6 +212,9 @@ define([
                 for (var key in result.rows) {
                     // docs attached to a timestamp
                     _.each(result.rows[key], function(doc) {
+                        if (doc._synced) {
+                            return;
+                        }
                         var resultDoc = doc;
                         resultDoc._synced = true;
                         promises.push(saveForce(destDb, resultDoc));
