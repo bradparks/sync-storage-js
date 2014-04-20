@@ -7,9 +7,10 @@ define([
     "basicStorage/InMemoryStorage",
     "utils/Logger",
     "query/Query",
-    "query/Filter"
+    "query/Filter",
+    "ConfigSpec"
 ],
-    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage, Logger, Query, Filter) {
+    function (SyncStorage, Q, _, StringUtils, RemoteFacadeBridge, InMemoryStorage, Logger, Query, Filter, ConfigSpec) {
         describe('SyncStorage', function () {
             var logger = new Logger("SyncDbSyncSpec");
             var db;
@@ -46,11 +47,7 @@ define([
             beforeEach(function () {
                 console.log("");
                 console.log("starting test...");
-                var simpleStorage = new RemoteFacadeBridge({
-                    host:"http://localhost:5984",
-                    name:"sync_test"
-                });
-                //simpleStorage = new InMemoryStorage();
+                var simpleStorage = ConfigSpec.storageImpl();
                 db = new SyncStorage("local", simpleStorage);
                 remoteDb = new SyncStorage("remote", simpleStorage);
                 object = {value: "test"};

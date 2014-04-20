@@ -13,7 +13,8 @@ requirejs.config({
         'underscore': '../../bower_components/underscore/underscore',
         'q': '../../bower_components/q/q',
         "localForage":"../../bower_components/localForage/localForage.min",
-        "jquery":"../../bower_components/jquery/dist/jquery"
+        "jquery":"../../bower_components/jquery/dist/jquery",
+        "ConfigSpec": "../../test/ConfigSpec"
     },
 
     shim: {
