@@ -193,7 +193,11 @@ define([
         }
 
         var result = "";
-        result += "var value = doc."+filter.keyName+";\n";
+        var keyName = filter.keyName;
+        if (keyName.substring(0, 1) == "_") {
+            keyName = prefix + keyName.substring(1);
+        }
+        result += "var value = doc."+keyName+";\n";
         result += "flag &= (true ";
         if (isDefined(filter.lowBound)) {
             result += toComp(toValue(filter.lowBound), "value", filter.lowInclusive);
