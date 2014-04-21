@@ -68,6 +68,13 @@ define([
                 });
             });
 
+            afterEach(function() {
+                Q.all([
+                    db.destroy(),
+                    remoteDb.destroy()
+                ]);
+            });
+
             it('sync with other SyncStorage', function() {
                 startPromise.then(function() {
                     return db.save(object);

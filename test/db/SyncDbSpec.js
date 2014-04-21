@@ -73,6 +73,13 @@ define([
                 });
             });
 
+            afterEach(function() {
+                Q.all([
+                    db.destroy(),
+                    remoteDb.destroy()
+                ]);
+            });
+
             it('stores an object and return an object with _id and _rev fields', function () {
                 startPromise.then(function() {
                     return db.save(object);
