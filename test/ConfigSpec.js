@@ -1,8 +1,9 @@
 define([
     "basicStorage/InMemoryStorage",
-    "bridge/RemoteFacadeBridge"
+    "bridge/RemoteFacadeBridge",
+    "basicStorage/IndexedDbStorage"
 ],
-function (InMemoryStorage, RemoteFacadeBridge) {
+function (InMemoryStorage, RemoteFacadeBridge, IndexedDbStorage) {
     var memory = function() {
         return new InMemoryStorage();
     };
@@ -12,7 +13,13 @@ function (InMemoryStorage, RemoteFacadeBridge) {
             name:"sync_test"
         });
     };
+    var indexed = function() {
+        return new IndexedDbStorage({
+            name: "indexedDB",
+            indexes: ["_id", "_rev", "_timestamp", "value", "_conflict"]
+        });
+    }
     return {
-        storageImpl: couch
+        storageImpl: memory
     }
 });
