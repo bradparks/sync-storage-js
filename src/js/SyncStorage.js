@@ -66,7 +66,7 @@ define([
         }
 
         var saveVersion = function(self, object) {
-            self.storageVersion.save(getCombinedKey(object), object).fail(function(err) {
+            return self.storageVersion.save(getCombinedKey(object), object).fail(function(err) {
                 logger.error("error when saving in version storage : "+JSON.stringify(object));
                 logger.error("error: "+JSON.stringify(err));
             });
@@ -94,14 +94,16 @@ define([
                             if (loseVersion == lastObject) {
                                 lastObject._timestamp = new Date().getTime();
                                 delete lastObject._synced;
-                                saveVersion(self, lastObject);
+                                var promise = saveVersion(self, lastObject);
+                                promises.push(promise);
                             }
                         } else {
                             var cleanObject = function(object) {
                                 object._timestamp = new Date().getTime();
                                 delete object._synced;
                                 delete object._conflict;
-                                saveVersion(self, object);
+                                var promise = saveVersion(self, object);
+                                promises.push(promise);
                             }
                             logger.info("conflict solved with onConflict function : "+JSON.stringify(result));
                             cleanObject(lastObject);
@@ -110,7 +112,8 @@ define([
                         }
                     }
                 }
-                saveVersion(self, resultObject);
+                var promise = saveVersion(self, resultObject);
+                promises.push(promise);
                 if (shouldStore) {
                     logger.info("store object on "+self.name+" : "+JSON.stringify(resultObject));
                     promises.push(self.storage.save(resultObject._id, resultObject));
