@@ -1,7 +1,7 @@
 define([
-    "basicStorage/InMemoryStorage",
+    "browserStorage/InMemoryStorage",
     "bridge/RemoteFacadeBridge",
-    "basicStorage/IndexedDbStorage"
+    "browserStorage/IndexedDbStorage"
 ],
 function (InMemoryStorage, RemoteFacadeBridge, IndexedDbStorage) {
     var memory = function() {

@@ -5,7 +5,7 @@ define([
     "utils/StringUtils",
     "bridge/CouchDBBridge",
     "utils/Logger",
-    "basicStorage/InMemoryStorage",
+    "browserStorage/InMemoryStorage",
     "bridge/RemoteFacadeBridge",
     "query/Filter",
     "query/Query",

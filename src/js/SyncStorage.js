@@ -3,7 +3,7 @@ define([
     "underscore",
     "q",
     "db/StoragePlus",
-    "basicStorage/InMemoryStorage",
+    "browserStorage/InMemoryStorage",
     "Random",
     "utils/Logger",
     "query/Query",

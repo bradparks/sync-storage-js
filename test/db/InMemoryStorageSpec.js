@@ -1,5 +1,5 @@
 define([
-    "basicStorage/InMemoryStorage"
+    "browserStorage/InMemoryStorage"
 ],
     function (Storage) {
         describe('Storage', function () {

@@ -1,6 +1,6 @@
 define([
     "db/IndexStorage",
-    "basicStorage/InMemoryStorage"
+    "browserStorage/InMemoryStorage"
 ],
     function (IndexStorage, Storage) {
         describe('IndexStorage', function () {

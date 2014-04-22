@@ -1,8 +1,8 @@
 define([
     "q",
     "underscore",
-    "basicStorage/IndexedDbStorage",
-    "basicStorage/LocalStorageBridge"
+    "browserStorage/IndexedDbStorage",
+    "browserStorage/LocalStorageBridge"
 ], function (Q, _, IndexedDbStorage, LocalStorageBridge) {
     var impls = [
         IndexedDbStorage

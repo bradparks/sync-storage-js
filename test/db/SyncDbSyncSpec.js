@@ -4,7 +4,7 @@ define([
     "underscore",
     "utils/StringUtils",
     "bridge/RemoteFacadeBridge",
-    "basicStorage/InMemoryStorage",
+    "browserStorage/InMemoryStorage",
     "utils/Logger",
     "query/Query",
     "query/Filter",
