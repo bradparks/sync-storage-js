@@ -5,7 +5,6 @@ define([
     "basicStorage/LocalStorageBridge"
 ], function (Q, _, IndexedDbStorage, LocalStorageBridge) {
     var impls = [
-        LocalStorageBridge,
         IndexedDbStorage
     ];
     var usedImpl = _.find(impls, function(impl) {
