@@ -15,10 +15,9 @@ define([
             return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
 
-        var classe = function (url, simpleStorage) {
+        var classe = function (name, simpleStorage) {
             var self = this;
-            this.name = url;
-            this.isLocal = !StringUtils.startsWith(url, "http");
+            this.name = name;
             if (!simpleStorage) {
                 simpleStorage = new InMemoryStorage();
             }
