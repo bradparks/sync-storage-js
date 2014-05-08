@@ -7,9 +7,10 @@ define([
     "Random",
     "utils/Logger",
     "query/Query",
-    "query/Filter"
+    "query/Filter",
+    "bridge/RemoteFacadeBridge"
 ],
-    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter) {
+    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge) {
         var getFinalStorage = function(name, storage) {
             return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
