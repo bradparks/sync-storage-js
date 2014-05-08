@@ -1,5 +1,5 @@
 define([
-"utils/Request",
+"utils/SimpleAjax",
 "utils/Logger",
 "utils/Lock",
 "q",
