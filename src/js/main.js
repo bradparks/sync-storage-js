@@ -3,8 +3,7 @@ require.config({
     baseUrl:"js",
     paths: {
         "q":"../../bower_components/q/q",
-        "underscore":"../../bower_components/underscore/underscore",
-        "localForage":"../../bower_components/localForage/localForage.min"
+        "underscore":"../../bower_components/underscore/underscore"
     },
     shim: {
         "underscore": {
@@ -12,7 +11,4 @@ require.config({
             exports:"_"
         }
     }
-});
-require(["app"], function(app) {
-    app();
-});
+})
