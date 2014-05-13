@@ -168,28 +168,15 @@ define([
                     expect(result[0]).toEqual(result[1]);
                     expect(object1).not.toEqual(object2);
 
-                    return Q.all([
-                        db.get({_id:object1._id, _rev:object1._rev}),
-                        db.get({_id:object2._id, _rev:object2._rev}),
-                    ]);
-                }).then(function(array) {
-                    expect(array[0]).not.toBe(null);
-                    expect(array[1]).not.toBe(null);
-                    stringify(array);
-
-
-                    expect(array[0]).not.toEqual(array[1]);
-                    var conflicted = array[0]._rev < array[1]._rev ? array[0] : array[1];
-                    expect(conflicted._conflict).toBe(true);
-
-                    expect(_.omit(array[0], "_conflict", "_timestamp")).toEqual(_.omit(object1, "_timestamp"));
-                    expect(_.omit(array[1], "_conflict", "_timestamp")).toEqual(_.omit(object2, "_timestamp"));
-
                     var filter = new Filter("_conflict", true, true, true, true);
                     var query = new Query(null, [filter], null);
-                    return db.queryHistory(query);
+                    return Q.all([
+                        db.queryHistory(query),
+                        remoteDb.queryHistory(query)
+                    ]);
                 }).then(function(result) {
-                    expect(result.total_rows).toBe(1);
+                    var total = result[0].total_rows + result[1].total_rows;
+                    expect(total).toBe(1);
                     testOk = true;
                 }).fail(log);
                 waitsFor(asyncTest);
