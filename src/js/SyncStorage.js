@@ -28,6 +28,7 @@ define([
                 logger.error(doc1);
                 logger.error(doc2);
             }
+            this.listeners = {};
         };
 
         classe.prototype.init = function() {
@@ -79,6 +80,7 @@ define([
         }
 
         var saveVersion = function(self, object) {
+            logger.debug("save version object "+JSON.stringify(object)+" on "+self.name);
             return self.storageVersion.save(getCombinedKey(object), object).fail(function(err) {
                 logger.error("error when saving in version storage : "+JSON.stringify(object));
                 logger.error("error: "+JSON.stringify(err));
@@ -153,6 +155,7 @@ define([
             resultObject._timestamp = now;
             delete resultObject._conflict;
             return saveForce(self, resultObject).then(function() {
+                self.event("save", resultObject);
                 return resultObject;
             });
         };
@@ -226,11 +229,11 @@ define([
                 for (var key in result.rows) {
                     // docs attached to a timestamp
                     _.each(result.rows[key], function(doc) {
-                        if (doc._id == "repId") {
-                            return;
-                        }
                         var resultDoc = doc;
-                        promises.push(saveForce(destDb, resultDoc));
+                        promises.push(saveForce(destDb, resultDoc).then(function(result) {
+                            self.event("save", resultDoc);
+                            return result;
+                        }));
                     });
                 }
                 return Q.all(promises).then(function(result) {
@@ -292,6 +295,31 @@ define([
                     self.storageMeta.destroy()
                 ]);
             });
+        }
+
+        classe.prototype.addListener = function(eventName, fonction) {
+            if (!fonction && typeof eventName === "function") {
+                fonction = eventName;
+                eventName = "all";
+            }
+            var existListeners = this.listeners[eventName];
+            if (!existListeners) {
+                existListeners = [];
+                this.listeners[eventName] = existListeners;
+            }
+            existListeners.push(fonction);
+        }
+
+        classe.prototype.event = function(name, value) {
+            if (name !== "all") {
+                this.event("all", value);
+            }
+            var calledListeners = this.listeners[name];
+            if (calledListeners) {
+                _.each(calledListeners, function(listener) {
+                    listener(value);
+                });
+            }
         }
 
         return classe;
