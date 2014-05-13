@@ -117,7 +117,7 @@ define([
                     expect(syncResult.to.ok).toBe(true);
                     expect(syncResult.from.ok).toBe(true);
                     // expect 4 objects synchronized
-                    expect(syncResult.to.size).toBe(5);
+                    expect(syncResult.to.size).toBe(4);
                     expect(syncResult.from.size).toBe(2);
                     return remoteDb.get(object);
                 }).then(function(result) {

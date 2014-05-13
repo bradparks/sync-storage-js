@@ -8,9 +8,10 @@ define([
     "utils/Logger",
     "query/Query",
     "query/Filter",
-    "bridge/RemoteFacadeBridge"
+    "bridge/RemoteFacadeBridge",
+    "browserStorage/IndexedDbStorage"
 ],
-    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge) {
+    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge, IndexedDbStorage) {
         var getFinalStorage = function(name, storage) {
             return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
@@ -33,12 +34,24 @@ define([
             var self = this;
             return self.simpleStorage.init().then(function() {
                 var nameVersion = "version$$"+self.name;
+                var nameMeta = "metadata$$"+self.name;
                 self.storage = getFinalStorage(self.name, self.simpleStorage);
                 self.storageVersion = getFinalStorage(nameVersion, self.simpleStorage);
+                self.storageMeta = getFinalStorage(nameMeta, self.simpleStorage);
                 return Q.all([
                     self.storage.init(),
-                    self.storageVersion.init()
+                    self.storageVersion.init(),
+                    self.storageMeta.init()
                 ]);
+            }).then(function() {
+                return self.storageMeta.get("repId");
+            }).then(function(result) {
+                if (result && result.value) {
+                    self.repId = result.value;
+                } else {
+                    self.repId = new Random().nextAlpha(30);
+                    self.storageMeta.save("repId", {value:self.repId});
+                }
             });
         }
 
@@ -82,7 +95,7 @@ define([
                 if (!shouldStore) {
                     var lastRev = parseRev(lastObject._rev);
                     shouldStore = lastRev.version < version || lastRev.version === version && lastRev.hash < parsedRev.hash;
-                    if (lastRev.version >= version) {
+                    if (lastRev.version > version || lastRev.version === version && lastRev.hash !== parsedRev.hash) {
                         // case conflict
                         var result = self.onConflict(lastObject, resultObject);
                         if (!result) {
@@ -93,14 +106,12 @@ define([
                             console.warn(JSON.stringify(logObject)+" marked as conflicted on "+self.name);
                             if (loseVersion == lastObject) {
                                 lastObject._timestamp = new Date().getTime();
-                                delete lastObject._synced;
                                 var promise = saveVersion(self, lastObject);
                                 promises.push(promise);
                             }
                         } else {
                             var cleanObject = function(object) {
                                 object._timestamp = new Date().getTime();
-                                delete object._synced;
                                 delete object._conflict;
                                 var promise = saveVersion(self, object);
                                 promises.push(promise);
@@ -119,7 +130,7 @@ define([
                     promises.push(self.storage.save(resultObject._id, resultObject));
                 }
                 return Q.all(promises).then(function() {
-                    return resultObject;
+                    return shouldStore;
                 });
             });
         }
@@ -140,9 +151,10 @@ define([
             }
             resultObject._rev = version + "-" + self.random.nextAlpha(30);
             resultObject._timestamp = now;
-            delete resultObject._synced;
             delete resultObject._conflict;
-            return saveForce(self, resultObject);
+            return saveForce(self, resultObject).then(function() {
+                return resultObject;
+            });
         };
 
         // query should contain an _id field
@@ -154,7 +166,6 @@ define([
                 if (!object) {
                     return object;
                 }
-                delete object._synced;
                 return object;
             });
         };
@@ -195,16 +206,16 @@ define([
         }
 
         var replicateTo = function(self, destDb) {
-            var repKey = "$repTo$"+destDb.name;
+            var repKey = "$repTo$"+destDb.name+"$"+destDb.repId;
             var endRep;
-            return self.storage.get(repKey).then(function(result) {
+            return self.storageMeta.get(repKey).then(function(result) {
                 var lastRep = result ? result._timestamp : undefined;
                 endRep = new Date().getTime();
                 logger.info("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
                 return self.storageVersion.waitIndex().then(function() {
                     var filter = new Filter("_timestamp", lastRep, endRep, true, true);
                     var query = new Query(null, [filter], null);
-                    return self.storageVersion.query(query);
+                    return self.storage.query(query);
                 });
             }).then(function(result) {
                 if (result.total_rows === 0) {
@@ -215,16 +226,21 @@ define([
                 for (var key in result.rows) {
                     // docs attached to a timestamp
                     _.each(result.rows[key], function(doc) {
-                        if (doc._synced) {
+                        if (doc._id == "repId") {
                             return;
                         }
                         var resultDoc = doc;
-                        resultDoc._synced = true;
                         promises.push(saveForce(destDb, resultDoc));
                     });
                 }
                 return Q.all(promises).then(function(result) {
-                    return result.length;
+                    var total = 0;
+                    _.each(result, function(value) {
+                        if (value === true) {
+                            total++;
+                        }
+                    });
+                    return total;
                 });
             }).then(function(size) {
                 var result = {
@@ -233,7 +249,7 @@ define([
                 };
                 return result;
             }).then(function(result) {
-                return self.storage.save(repKey, {
+                return self.storageMeta.save(repKey, {
                     _timestamp:endRep
                 }).then(function() {
                     logger.info("rep "+self.name+" to "+destDb.name+" ended : "+JSON.stringify(result));
@@ -272,7 +288,8 @@ define([
             }).then(function() {
                 return Q.all([
                     self.storage.destroy(),
-                    self.storageVersion.destroy()
+                    self.storageVersion.destroy(),
+                    self.storageMeta.destroy()
                 ]);
             });
         }
