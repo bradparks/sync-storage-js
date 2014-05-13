@@ -12,10 +12,6 @@ define([
 
     var logger = new Logger("Lock", Logger.INFO);
 
-    var isPromise = function(object) {
-        return object.then ? true : false;
-    }
-
     classe.prototype.synchronize = function() {
         var defer = Q.defer();
         var self = this;
