@@ -248,5 +248,26 @@ define([
                 waitsFor(asyncTest);
             });
 
+            it('query all docs', function () {
+                var objects = [];
+                startPromise.then(function() {
+                    var promises = create(db, 3);
+                    promises.push(db.save({
+                        plop:"not queried"
+                    }));
+                    return Q.all(promises);
+                }).then(function(result) {
+                    objects = result;
+                    expect(result.length).toBe(4);
+                    var query = new Query(null, null, null);
+                    return db.query(query);
+                }).then(function(result) {
+                    //logger.info(JSON.stringify(attendu, null, 2));
+                    //logger.info(JSON.stringify(result, null, 2));
+                    expect(result.total_rows).toEqual(4);
+                    testOk = true;
+                }).fail(log);
+                waitsFor(asyncTest);
+            });
         });
     });
