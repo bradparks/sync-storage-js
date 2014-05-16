@@ -63,7 +63,7 @@ define([
         var parseRev = function (revString) {
             var split = revString.split('-');
             return {
-                version: split[0],
+                version: Number.parseInt(split[0]),
                 hash: split[1]
             }
         };
