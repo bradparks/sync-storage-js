@@ -9,9 +9,10 @@ define([
     "query/Query",
     "query/Filter",
     "bridge/RemoteFacadeBridge",
-    "browserStorage/IndexedDbStorage"
+    "browserStorage/IndexedDbStorage",
+    "utils/Lock"
 ],
-    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge, IndexedDbStorage) {
+    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge, IndexedDbStorage, Lock) {
         var getFinalStorage = function(name, storage) {
             return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
@@ -90,8 +91,10 @@ define([
         var saveForce = function(self, resultObject) {
             var parsedRev = parseRev(resultObject._rev);
             var version = parsedRev.version;
-            // TODO put lock on write
-            return self.get({_id:resultObject._id}).then(function (lastObject) {
+            var lock = Lock.get(resultObject._id);
+            return lock.synchronize().then(function() {
+                return self.get({_id:resultObject._id});
+            }).then(function (lastObject) {
                 var promises = [];
                 var shouldStore = !lastObject;
                 if (!shouldStore) {
@@ -133,6 +136,10 @@ define([
                 }
                 return Q.all(promises).then(function() {
                     return shouldStore;
+                });
+            }).then(function(result) {
+                return lock.release().then(function() {
+                    return result;
                 });
             });
         }
