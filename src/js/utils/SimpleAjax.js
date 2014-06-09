@@ -40,12 +40,14 @@ define([
                 if (req.status < 400) {
                     defer.resolve({
                         data: req.responseText,
-                        statusCode: req.status
+                        statusCode: req.status,
+                        req:req
                     });
                 } else {
                     defer.reject({
                         statusCode: req.status,
-                        error: req.responseText
+                        error: req.responseText,
+                        req:req
                     });
                 }
 

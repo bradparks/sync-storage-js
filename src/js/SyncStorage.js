@@ -10,9 +10,10 @@ define([
     "query/Filter",
     "bridge/RemoteFacadeBridge",
     "browserStorage/IndexedDbStorage",
-    "utils/Lock"
+    "utils/Lock",
+    "utils/TimeService"
 ],
-    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge, IndexedDbStorage, Lock) {
+    function (StringUtils, _, Q, StoragePlus, InMemoryStorage, Random, Logger, Query, Filter, RemoteFacadeBridge, IndexedDbStorage, Lock, TimeService) {
         var getFinalStorage = function(name, storage) {
             return storage.isAdvanced && storage.isAdvanced() ? storage.create(name) : new StoragePlus(name, storage);
         }
@@ -40,10 +41,16 @@ define([
                 self.storage = getFinalStorage(self.name, self.simpleStorage);
                 self.storageVersion = getFinalStorage(nameVersion, self.simpleStorage);
                 self.storageMeta = getFinalStorage(nameMeta, self.simpleStorage);
+
+                var timePromise = TimeService.fromUrl().then(function(timeService) {
+                    self.timeService = timeService;
+                })
+
                 return Q.all([
                     self.storage.init(),
                     self.storageVersion.init(),
-                    self.storageMeta.init()
+                    self.storageMeta.init(),
+                    timePromise
                 ]);
             }).then(function() {
                 return self.storageMeta.get("repId");
@@ -92,6 +99,7 @@ define([
             var parsedRev = parseRev(resultObject._rev);
             var version = parsedRev.version;
             var lock = Lock.get(resultObject._id);
+            var thenPromises = [];
             return lock.synchronize().then(function() {
                 return self.get({_id:resultObject._id});
             }).then(function (lastObject) {
@@ -110,13 +118,13 @@ define([
                             var logObject = {_id:loseVersion._id, _rev:loseVersion._rev};
                             console.warn(JSON.stringify(logObject)+" marked as conflicted on "+self.name);
                             if (loseVersion == lastObject) {
-                                lastObject._timestamp = new Date().getTime();
+                                lastObject._timestamp = self.timeService.getDate().getTime();
                                 var promise = saveVersion(self, lastObject);
                                 promises.push(promise);
                             }
                         } else {
                             var cleanObject = function(object) {
-                                object._timestamp = new Date().getTime();
+                                object._timestamp = self.timeService.getDate().getTime();
                                 delete object._conflict;
                                 var promise = saveVersion(self, object);
                                 promises.push(promise);
@@ -124,7 +132,7 @@ define([
                             logger.info("conflict solved with onConflict function : "+JSON.stringify(result));
                             cleanObject(lastObject);
                             cleanObject(resultObject);
-                            promises.push(self.save(result));
+                            thenPromises.push(self.save(result));
                         }
                     }
                 }
@@ -139,6 +147,8 @@ define([
                 });
             }).then(function(result) {
                 return lock.release().then(function() {
+                    return Q.all(thenPromises);
+                }).then(function() {
                     return result;
                 });
             });
@@ -149,7 +159,7 @@ define([
         classe.prototype.save = function (object) {
             var self = this;
             var resultObject = _.extend({}, object);
-            var now = new Date().getTime();
+            var now = self.timeService.getDate().getTime();
             if (!resultObject._id) {
                 resultObject._id = now + self.random.nextAlpha(10);
             }
@@ -220,7 +230,7 @@ define([
             var endRep;
             return self.storageMeta.get(repKey).then(function(result) {
                 var lastRep = result ? result._timestamp : undefined;
-                endRep = new Date().getTime();
+                endRep = self.timeService.getDate().getTime();
                 logger.info("start replicating from "+self.name+" to "+destDb.name+". startTimestamp="+lastRep+", endTimestamp="+endRep);
                 return self.storageVersion.waitIndex().then(function() {
                     var filter = new Filter("_timestamp", lastRep, endRep, true, true);
